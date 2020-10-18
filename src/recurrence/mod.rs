@@ -588,7 +588,7 @@ mod tests
     fn infer_by_day()
     {
         let start_date = NaiveDate::from_ymd(2020, 09, 26);
-        let rule = RecurrenceRule::new("FREQ=WEEKLY", start_date).unwrap();
+        let rule = RecurrenceRule::new("FREQ=WEEKLY").unwrap().infer_stuff(start_date);
 
         assert_eq!(rule.by_day, Some(vec![Weekday::Sat]));
     }
@@ -597,7 +597,7 @@ mod tests
     fn infer_by_month_day()
     {
         let start_date = NaiveDate::from_ymd(2020, 09, 26);
-        let rule = RecurrenceRule::new("FREQ=MONTHLY", start_date).unwrap();
+        let rule = RecurrenceRule::new("FREQ=MONTHLY").unwrap().infer_stuff(start_date);
 
         assert_eq!(rule.by_month_day, Some(vec![26]));
     }
@@ -606,7 +606,7 @@ mod tests
     fn yearly_infer_by_month_day()
     {
         let start_date = NaiveDate::from_ymd(2020, 09, 26);
-        let rule = RecurrenceRule::new("FREQ=YEARLY;BYMONTH=2", start_date).unwrap();
+        let rule = RecurrenceRule::new("FREQ=YEARLY;BYMONTH=2").unwrap().infer_stuff(start_date);
 
         assert_eq!(rule.by_month_day, Some(vec![26]));
     }
@@ -615,7 +615,7 @@ mod tests
     fn yearly_infer_by_day()
     {
         let start_date = NaiveDate::from_ymd(2020, 09, 26);
-        let rule = RecurrenceRule::new("FREQ=YEARLY;BYWEEKNO=2,4,6", start_date).unwrap();
+        let rule = RecurrenceRule::new("FREQ=YEARLY;BYWEEKNO=2,4,6").unwrap().infer_stuff(start_date);
 
         assert_eq!(rule.by_day, Some(vec![Weekday::Sat]));
     }
@@ -624,7 +624,7 @@ mod tests
     fn yearly_infer_by_year_day()
     {
         let start_date = NaiveDate::from_ymd(2020, 09, 26);
-        let rule = RecurrenceRule::new("FREQ=YEARLY", start_date).unwrap();
+        let rule = RecurrenceRule::new("FREQ=YEARLY").unwrap().infer_stuff(start_date);
 
         assert_eq!(rule.by_year_day, Some(vec![start_date.year_day() as i32]));
     }

@@ -45,3 +45,10 @@ pub fn get_cell_from_row_with_default<'a, T: FromSql<'a>>(row: &'a Row, col: &st
             }
     }
 }
+
+pub trait FromRow
+{
+    type SelfType;
+
+    fn from_row(row: &Row) -> Result<Self::SelfType, DatabaseError>;
+}

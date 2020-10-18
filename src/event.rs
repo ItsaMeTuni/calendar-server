@@ -309,7 +309,7 @@ impl EventRecurring
             panic!("Tried making an EventRecurrent from non-recurrent event.");
         }
 
-        let recurrence_rule = RecurrenceRule::new(rrule_field.unwrap(), span.get_start_date())
+        let recurrence_rule = RecurrenceRule::new(rrule_field.unwrap())
             .map_err(|e| DatabaseErrorKind::Other(Box::new(e)))?;
 
         let recurrence = EventRecurrence {

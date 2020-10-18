@@ -17,6 +17,10 @@ pub enum DatabaseErrorKind
     UnexpectedNull(String),
     PostgresError(postgres::Error),
     ExpectedRow(i32),
+
+    /// A query with the RETURNING clause returned 0 rows.
+    ReturningIsEmpty,
+
     Other(Box<dyn Error>),
 }
 
