@@ -1,6 +1,6 @@
 use chrono::{Date, Utc, NaiveDate, Duration, Datelike, Weekday, Month, IsoWeek, ParseError};
 use std::str::FromStr;
-use super::recurrence::helpers::NaiveDateHelpers;
+use self::helpers::NaiveDateHelpers;
 use std::fmt::{Formatter, Display};
 
 mod recurrence_parser;
@@ -48,7 +48,8 @@ impl RecurrenceRule
     pub fn new(rrule: &str, start_date: NaiveDate) -> Result<Self, recurrence_parser::RRuleParseError>
     {
         let mut rule = recurrence_parser::parse(rrule)?;
-        Ok(rule)
+
+        Ok(rule.infer_stuff(start_date))
     }
 
     fn set_interval(mut self, interval: i32) -> Self

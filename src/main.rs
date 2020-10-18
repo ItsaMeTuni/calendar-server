@@ -5,8 +5,10 @@
 mod connection_pool;
 mod database_error;
 mod database_helpers;
-mod calendar;
 mod routes;
+mod calendar;
+mod event;
+mod recurrence;
 
 extern crate dotenv;
 #[macro_use] extern crate thiserror;

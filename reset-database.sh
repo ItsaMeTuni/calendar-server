@@ -14,8 +14,8 @@ then
     # stop containers
     docker-compose down
 
-    # remove all volumes related to the calendar-server project (any volumes that have a name
-    # starting with "calendar-server")
+    # remove all volumes related to the calendarold-server project (any volumes that have a name
+    # starting with "calendarold-server")
     docker volume rm calendar-server_dbdata
 
     # build db image

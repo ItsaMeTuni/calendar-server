@@ -3,14 +3,12 @@
 //! Everything is stored in UTC: `NaiveDate`s and `NaiveTime`s are all in UTC,
 //! and the DATEs and TIMEs in the database are in UTC (and have no timezone).
 
-pub mod recurrence;
-
 use crate::connection_pool::PgsqlConn;
 use crate::database_error::{DatabaseError, DatabaseErrorKind};
 use postgres::Row;
 use crate::database_helpers::{get_cell_from_row, get_cell_from_row_with_default};
 use chrono::{Date, DateTime, TimeZone, NaiveDate, NaiveDateTime, Utc, NaiveTime, Duration};
-use self::recurrence::{RecurrenceRule};
+use crate::recurrence::RecurrenceRule;
 use std::ops::Deref;
 use std::error::Error;
 use serde::{Serialize, Serializer, Deserialize};
@@ -245,7 +243,7 @@ pub struct EventRecurring
 }
 
 /// If you want to get an event you have to get it from
-/// its calendar.
+/// its calendarold.
 impl EventRecurring
 {
     pub fn get_id(&self) -> i32 { self.id }
@@ -311,7 +309,7 @@ impl EventRecurring
             panic!("Tried making an EventRecurrent from non-recurrent event.");
         }
 
-        let recurrence_rule = RecurrenceRule::new(rrule_field.unwrap(), span.get_date_span().start)
+        let recurrence_rule = RecurrenceRule::new(rrule_field.unwrap(), span.get_start_date())
             .map_err(|e| DatabaseErrorKind::Other(Box::new(e)))?;
 
         let recurrence = EventRecurrence {
@@ -374,7 +372,7 @@ pub struct EventSingle
     /// and this one "took its place".
     ///
     /// If this is None it just means this is a non-recurring event,
-    /// without any relationship with any other event in the calendar.
+    /// without any relationship with any other event in the calendarold.
     ///
     /// For example:
     ///
