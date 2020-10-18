@@ -9,12 +9,12 @@ use postgres::Row;
 use crate::database_helpers::{get_cell_from_row, get_cell_from_row_with_default};
 use chrono::{Date, DateTime, TimeZone, NaiveDate, NaiveDateTime, Utc, NaiveTime, Duration};
 use crate::recurrence::RecurrenceRule;
-use std::ops::Deref;
-use std::error::Error;
-use serde::{Serialize, Serializer, Deserialize};
-use serde::de::Visitor;
-use serde::export::Formatter;
-use postgres::types::ToSql;
+
+
+use serde::{Serialize, Deserialize};
+
+
+
 
 pub const EVENT_FIELDS: &str = "id, parent_event_id, start_date, start_time, end_date, end_time, rrule, exdates, rdates";
 
@@ -289,7 +289,7 @@ impl EventRecurring
                         parent_id: self.id,
                         span: match self.span
                         {
-                            EventSpan::Date(date_span) => EventSpan::from_date_and_duration(*date, duration),
+                            EventSpan::Date(_date_span) => EventSpan::from_date_and_duration(*date, duration),
                             EventSpan::DateTime(datetime_span) => EventSpan::from_date_time_and_duration(date.and_time(datetime_span.start.time()), duration),
                         },
                     }
@@ -563,7 +563,7 @@ mod event_plain_serde
     {
         use chrono::{NaiveDate};
         use serde::{self, Deserialize, Serializer, Deserializer};
-        use serde::de::Error;
+        
         use super::DATE_FORMAT;
 
         pub fn serialize<S>(date: &NaiveDate, serializer: S) -> Result<S::Ok, S::Error>
@@ -589,7 +589,7 @@ mod event_plain_serde
     {
         use chrono::{NaiveDate};
         use serde::{self, Deserialize, Serializer, Deserializer};
-        use serde::de::Error;
+        
         use serde::ser::SerializeSeq;
         use super::DATE_FORMAT;
 
@@ -624,7 +624,7 @@ mod event_plain_serde
     {
         use chrono::{NaiveTime};
         use serde::{self, Deserialize, Serializer, Deserializer};
-        use serde::de::Error;
+        
         use super::TIME_FORMAT;
 
         pub fn serialize<S>(date: &Option<NaiveTime>, serializer: S) -> Result<S::Ok, S::Error>

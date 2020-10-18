@@ -1,8 +1,8 @@
-use chrono::{NaiveDate, Weekday, ParseResult, Month, Datelike};
+use chrono::{NaiveDate, Weekday, ParseResult, Month};
 use super::{RecurrenceLimit, RecurrenceFreq, RecurrenceRule};
-use std::str::FromStr;
+
 use std::collections::HashMap;
-use std::string::ParseError;
+
 use num_traits::cast::FromPrimitive;
 
 #[derive(Error, Debug)]
@@ -68,7 +68,7 @@ pub fn parse(rule: &str) -> Result<RecurrenceRule, RRuleParseError>
     let interval: i32 = props.get("INTERVAL")
         .map(|x| x.parse::<i32>())
         .unwrap_or(Ok(1))
-        .map_err(|e| RRuleParseError::InvalidValue("INTERVAL"))?;
+        .map_err(|_e| RRuleParseError::InvalidValue("INTERVAL"))?;
 
     if interval.is_negative()
     {
@@ -88,7 +88,7 @@ pub fn parse(rule: &str) -> Result<RecurrenceRule, RRuleParseError>
         }
 
         let date = parse_date(until)
-            .map_err(|e| RRuleParseError::InvalidValue("UNTIL"))?;
+            .map_err(|_e| RRuleParseError::InvalidValue("UNTIL"))?;
 
         limit = RecurrenceLimit::Date(date);
     }
@@ -264,9 +264,9 @@ fn parse_list<T, F>(value: &str, item_parser: F) -> Result<Vec<T>, RRuleParseErr
 mod test
 {
     use super::{RecurrenceRule, RecurrenceFreq, RecurrenceLimit};
-    use super::RRuleParseError;
+    
     use chrono::{NaiveDate, Month, Weekday};
-    use num_traits::FromPrimitive;
+    
 
     impl Default for RecurrenceRule
     {

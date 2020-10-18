@@ -1,11 +1,11 @@
 use std::error::Error;
 use rocket::response::Responder;
 use rocket::{Request, Response, Route};
-use rocket_contrib::json::Json;
+
 use rocket::http::{Status, ContentType};
-use serde_json::Value;
+
 use serde::Serialize;
-use std::ops::{Deref, Try};
+use std::ops::{Deref};
 use std::io::Cursor;
 
 mod routes_calendar;
@@ -30,7 +30,7 @@ pub enum RouteResult<T>
 
 impl<'r, T: Serialize> Responder<'r> for RouteResult<T>
 {
-    fn respond_to(self, request: &Request) -> rocket::response::Result<'r>
+    fn respond_to(self, _request: &Request) -> rocket::response::Result<'r>
     {
         let mut response = Response::new();
 

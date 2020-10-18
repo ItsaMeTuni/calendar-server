@@ -1,5 +1,5 @@
 use chrono::{Date, Utc, NaiveDate, Duration, Datelike, Weekday, Month, IsoWeek, ParseError};
-use std::str::FromStr;
+
 use self::helpers::NaiveDateHelpers;
 use std::fmt::{Formatter, Display};
 
@@ -47,7 +47,7 @@ impl RecurrenceRule
     /// Parses an RRULE string.
     pub fn new(rrule: &str, start_date: NaiveDate) -> Result<Self, recurrence_parser::RRuleParseError>
     {
-        let mut rule = recurrence_parser::parse(rrule)?;
+        let rule = recurrence_parser::parse(rrule)?;
 
         Ok(rule.infer_stuff(start_date))
     }
@@ -155,9 +155,9 @@ impl RecurrenceRule
 
     /// Check if `date` fits into the BYWEEKNO property of
     /// this rule.
-    fn check_by_week_no(&self, date: &NaiveDate) -> bool
+    fn check_by_week_no(&self, _date: &NaiveDate) -> bool
     {
-        if let Some(by_week_no) = &self.by_week_no
+        if let Some(_by_week_no) = &self.by_week_no
         {
             if self.frequency != RecurrenceFreq::Yearly
             {
@@ -232,9 +232,9 @@ impl RecurrenceRule
 
     /// Check if `date` fits into the BYSETPOS property of
     /// this rule.
-    fn check_by_set_pos(&self, date: &NaiveDate) -> bool
+    fn check_by_set_pos(&self, _date: &NaiveDate) -> bool
     {
-        if let Some(by_set_pos) = &self.by_set_pos
+        if let Some(_by_set_pos) = &self.by_set_pos
         {
             // TODO: implement this
             unimplemented!()
@@ -454,7 +454,7 @@ mod tests
     {
         let start_date = NaiveDate::from_ymd(2020, 1, 1);
 
-        let mut rule = RecurrenceRule {
+        let rule = RecurrenceRule {
             frequency: RecurrenceFreq::Weekly,
             limit: RecurrenceLimit::Indefinite,
             by_day: Some(vec![start_date.weekday()]),
@@ -483,7 +483,7 @@ mod tests
     {
         let start_date = NaiveDate::from_ymd(2020, 1, 1);
 
-        let mut rule = RecurrenceRule {
+        let rule = RecurrenceRule {
             frequency: RecurrenceFreq::Weekly,
             limit: RecurrenceLimit::Date(NaiveDate::from_ymd(2020, 1, 15)),
             by_day: Some(vec![start_date.weekday()]),
@@ -510,7 +510,7 @@ mod tests
     {
         let start_date = NaiveDate::from_ymd(2020, 1, 1);
 
-        let mut rule = RecurrenceRule {
+        let rule = RecurrenceRule {
             frequency: RecurrenceFreq::Weekly,
             limit: RecurrenceLimit::Count(4),
             by_day: Some(vec![start_date.weekday()]),
@@ -538,7 +538,7 @@ mod tests
     {
         let start_date = NaiveDate::from_ymd(2020, 1, 1);
 
-        let mut rule = RecurrenceRule {
+        let rule = RecurrenceRule {
             frequency: RecurrenceFreq::Weekly,
             interval: 2,
             by_day: Some(vec![start_date.weekday()]),
