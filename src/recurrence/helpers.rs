@@ -2,6 +2,11 @@ use chrono::{Datelike};
 
 pub trait NaiveDateHelpers: Datelike
 {
+    /// Get day of the year. E.g. for 2020-01-01 this function
+    /// will return 1, for 2020-02-15 this will return 46, you
+    /// get the picture.
+    ///
+    /// Accounts for leap years (2020-03-01 will return 61, 2021-03-01 will return 60).
     fn year_day(&self) -> u32
     {
         let is_leap_year = self.year() % 4 == 0 && (self.year() % 100 != 0 || self.year() % 400 == 0);

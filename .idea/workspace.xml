@@ -23,17 +23,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9f56633b-031c-42f4-acec-04a556814e0d" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/calendar.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/reset-database.sh" beforeDir="false" afterPath="$PROJECT_DIR$/reset-database.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/calendar/calendar.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/calendar/event/mod.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/calendar/event/recurrence/helpers.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/calendar/event/recurrence/mod.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/calendar/event/recurrence/recurrence_parser.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/calendar/event/recurrence/serde.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/calendar/mod.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/recurrence/helpers.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/recurrence/helpers.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/recurrence/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/recurrence/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/recurrence/recurrence_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/recurrence/recurrence_parser.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -116,6 +109,10 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="WindowStateProjectService">
+    <state x="594" y="185" width="724" height="631" key="#Code_Cleanup_Inspections" timestamp="1602987116711">
+      <screen x="0" y="0" width="1920" height="1039" />
+    </state>
+    <state x="594" y="185" width="724" height="631" key="#Code_Cleanup_Inspections/0.0.1920.1039/1920.0.1920.1080@0.0.1920.1039" timestamp="1602987116711" />
     <state x="362" y="195" width="1192" height="671" key="#Run" timestamp="1601313442486">
       <screen x="0" y="0" width="1920" height="1039" />
     </state>
@@ -132,10 +129,10 @@
       <screen x="0" y="0" width="1920" height="1039" />
     </state>
     <state x="696" y="213" width="524" height="516" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/0.0.1920.1039/1920.0.1920.1080@0.0.1920.1039" timestamp="1602957678969" />
-    <state x="698" y="359" width="519" height="308" key="ANALYSIS_DLG_com.intellij.analysis.BaseAnalysisAction$1" timestamp="1602987092677">
+    <state x="698" y="331" width="648" height="308" key="ANALYSIS_DLG_com.intellij.analysis.BaseAnalysisAction$1" timestamp="1602987125457">
       <screen x="0" y="0" width="1920" height="1039" />
     </state>
-    <state x="698" y="359" width="519" height="308" key="ANALYSIS_DLG_com.intellij.analysis.BaseAnalysisAction$1/0.0.1920.1039/1920.0.1920.1080@0.0.1920.1039" timestamp="1602987092677" />
+    <state x="698" y="331" width="648" height="308" key="ANALYSIS_DLG_com.intellij.analysis.BaseAnalysisAction$1/0.0.1920.1039/1920.0.1920.1080@0.0.1920.1039" timestamp="1602987125457" />
     <state x="804" y="164" width="308" height="560" key="EnvironmentVariablesDialog" timestamp="1602986590946">
       <screen x="0" y="0" width="1920" height="1039" />
     </state>

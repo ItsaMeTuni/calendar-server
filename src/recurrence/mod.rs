@@ -1,3 +1,6 @@
+//! This module does everything related to event recurrences, from RRULE parsing
+//! to calculating recurring event instances.
+
 use chrono::{Date, Utc, NaiveDate, Duration, Datelike, Weekday, Month, IsoWeek, ParseError};
 
 use self::helpers::NaiveDateHelpers;
@@ -27,6 +30,8 @@ pub enum RecurrenceLimit
 
 /// An event's recurrence rule, this is used by `Event.generate_instances`
 /// to figure out when event instances will happen.
+/// This is basically a data structure to represent an
+/// RRULE as defined in RFC 5545.
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct RecurrenceRule
 {
@@ -45,11 +50,10 @@ pub struct RecurrenceRule
 impl RecurrenceRule
 {
     /// Parses an RRULE string.
-    pub fn new(rrule: &str, start_date: NaiveDate) -> Result<Self, recurrence_parser::RRuleParseError>
+    pub fn new(rrule: &str) -> Result<Self, recurrence_parser::RRuleParseError>
     {
         let rule = recurrence_parser::parse(rrule)?;
-
-        Ok(rule.infer_stuff(start_date))
+        Ok(rule)
     }
 
     fn set_interval(mut self, interval: i32) -> Self
@@ -247,6 +251,26 @@ impl RecurrenceRule
 
 }
 
+/// Calculates the recurrence instances for an event. I.e finds out the dates in which a recurring event
+/// happens.
+///
+/// `starting_at` is the start date of the event. The date of the "original" event.
+/// The function will only return dates between `from` and `to` (both inclusive).
+///
+///
+/// ## How it works
+///
+/// Basically, we iterate through each date from `starting_at` until `to` and check if the
+/// date matches the recurrence rule. If the date matches the rule and is between `from`
+/// and `to` (both inclusive), we add it to the results vector.
+///
+/// ## A note on performance
+/// This event is not very performant, it has an O(n) complexity where n is the number of days between
+/// `starting_at` and `to`, so if `starting_at` is 2020-01-01 and `to` is 2021-01-01 the loop will execute 356
+/// times. This doesn't seem so bad but if you have this function being called many times a second for events
+/// a few years in the past this can quickly become a bottleneck. It works this way because I don't know any other
+/// way to calculate the recurrence dates while taking into account all parameters as defined in RFC 5545. There
+/// might be a better way to do this, but I don't know about it.
 fn calculate_recurrence_instances(rule: RecurrenceRule, from: NaiveDate, to: NaiveDate, starting_at: NaiveDate) -> Vec<NaiveDate>
 {
     let mut results = vec![];

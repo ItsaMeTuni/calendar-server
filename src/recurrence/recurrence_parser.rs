@@ -27,7 +27,10 @@ pub enum RRuleParseError
     Requires(&'static str, &'static str)
 }
 
-
+/// Try to parse an RRULE as defined in RFC 5545 into a RecurrenceRule.
+///
+///
+/// No inferences are made here, take a look at RecurrenceRule::infer_stuff.
 pub fn parse(rule: &str) -> Result<RecurrenceRule, RRuleParseError>
 {
     let props = rule
