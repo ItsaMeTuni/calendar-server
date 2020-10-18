@@ -8,7 +8,7 @@ edition = "2018"
 
 [dependencies]
 r2d2_postgres = "0.16.0"
-chrono = "0.4.15"
+chrono = { version = "0.4.15", feature = ["serde"] }
 postgres = { version = "0.17.5", features = ["with-chrono-0_4"] }
 thiserror = "1.0.20"
 num-traits = "0.2.12"

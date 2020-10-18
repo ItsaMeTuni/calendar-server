@@ -10,8 +10,10 @@ use std::io::Cursor;
 use std::fmt::Debug;
 use serde::export::Formatter;
 use rocket::http::hyper::header::Location;
+use std::any::Any;
 
 mod routes_calendar;
+mod routes_event;
 
 
 /// All project routes go in here, main.rs
@@ -21,12 +23,20 @@ pub fn get_routes() -> Vec<Route>
     routes![
         routes_calendar::get_calendar,
         routes_calendar::insert_calendar,
+
+        routes_event::get_event,
+        routes_event::insert_event,
+        routes_event::get_instances,
+        routes_event::update_event,
     ]
 }
 
 
 /// Every route in the project should return this,
 /// it implements Responder.
+///
+/// If you don't want to return anything in the response's
+/// body just use RouteResult<()>.
 #[derive(Debug)]
 pub enum RouteResult<T>
     where T: Serialize
@@ -61,7 +71,7 @@ pub enum RouteResult<T>
 
 /// Transforms a RouteResult into a response with the appropriate
 /// status code and body.
-impl<'r, T: Serialize + Debug> Responder<'r> for RouteResult<T>
+impl<'r, T: Serialize + Debug + 'static> Responder<'r> for RouteResult<T>
 {
     fn respond_to(self, _request: &Request) -> rocket::response::Result<'r>
     {
@@ -81,7 +91,18 @@ impl<'r, T: Serialize + Debug> Responder<'r> for RouteResult<T>
 
         let body = match &self
         {
-            RouteResult::Ok(payload) => Some(serde_json::to_string(payload)),
+            RouteResult::Ok(payload) =>
+            {
+                // Don't serialize payload if it's type is `()`
+                if (payload as &dyn Any).downcast_ref::<()>().is_some()
+                {
+                    None
+                }
+                else
+                {
+                    Some(serde_json::to_string(payload))
+                }
+            },
             RouteResult::Created(payload, _) => Some(serde_json::to_string(payload)),
             RouteResult::BadRequest(payload) => payload.as_ref().map(|x| x.deref().serialize_json()),
             _ => None,
@@ -179,7 +200,24 @@ impl<T> Try for RouteResult<T>
     }
 }
 
-
+impl<T, E: 'static> From<Result<Option<T>, E>> for RouteResult<T>
+    where
+        T: Serialize,
+        E: Error
+{
+    fn from(result: Result<Option<T>, E>) -> Self
+    {
+        match result
+        {
+            Ok(x) => match x
+            {
+                Some(payload) => RouteResult::Ok(payload),
+                None => RouteResult::NotFound,
+            },
+            Err(e) => RouteResult::InternalError(Box::new(e))
+        }
+    }
+}
 
 /// Convenience trait that has a method for easy
 /// json serialization.

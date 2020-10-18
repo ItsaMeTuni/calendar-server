@@ -6,14 +6,13 @@
 use crate::connection_pool::PgsqlConn;
 use crate::database_error::{DatabaseError, DatabaseErrorKind};
 use postgres::Row;
-use crate::database_helpers::{get_cell_from_row, get_cell_from_row_with_default};
+use crate::database_helpers::{get_cell_from_row, get_cell_from_row_with_default, FromRow};
 use chrono::{Date, DateTime, TimeZone, NaiveDate, NaiveDateTime, Utc, NaiveTime, Duration};
 use crate::recurrence::RecurrenceRule;
 
 
-use serde::{Serialize, Deserialize};
-
-
+use serde::{Serialize, Deserialize, Serializer, Deserializer};
+use serde::de::Error;
 
 
 pub const EVENT_FIELDS: &str = "id, parent_event_id, start_date, start_time, end_date, end_time, rrule, exdates, rdates";
@@ -190,9 +189,12 @@ pub enum Event
     Single(EventSingle),
 }
 
-impl Event
+
+impl FromRow for Event
 {
-    pub fn from_row(row: &Row) -> Result<Self, DatabaseError>
+    type SelfType = Event;
+
+    fn from_row(row: &Row) -> Result<Self, DatabaseError>
     {
         if get_cell_from_row::<Option<String>>(row, "rrule")?.is_some()
         {
@@ -298,7 +300,7 @@ impl EventRecurring
         )
     }
 
-    pub fn from_row(row: &Row) -> Result<Self, DatabaseError>
+    fn from_row(row: &Row) -> Result<Self, DatabaseError>
     {
         let span = EventSpan::from_row(row)?;
 
@@ -336,16 +338,16 @@ impl ToPlain<EventPlain> for EventRecurring
             id: Some(self.id),
             parent_id: None,
 
-            start_date: self.span.get_start_date(),
-            end_date: self.span.get_end_date(),
+            start_date: Some(self.span.get_start_date()),
+            end_date: Some(self.span.get_end_date()),
             start_time: self.span.get_start_time(),
             end_time: self.span.get_end_time(),
 
             recurrence: Some(
                 RecurrencePlain {
-                    rrule: self.recurrence.rule.to_string(),
-                    exdates: self.recurrence.exdates,
-                    rdates: self.recurrence.rdates,
+                    rrule: Some(self.recurrence.rule.to_string()),
+                    exdates: Some(self.recurrence.exdates),
+                    rdates: Some(self.recurrence.rdates),
                 }
             ),
         }
@@ -396,22 +398,7 @@ impl EventSingle
 
     pub fn get_parent_id(&self) -> Option<i32> { self.parent_id }
 
-    pub fn to_plain(&self) -> EventPlain
-    {
-        EventPlain {
-            id: Some(self.id),
-            parent_id: self.parent_id,
-
-            start_date: self.span.get_start_date(),
-            end_date: self.span.get_end_date(),
-            start_time: self.span.get_start_time(),
-            end_time: self.span.get_end_time(),
-
-            recurrence: None,
-        }
-    }
-
-    pub fn from_row(row: &Row) -> Result<Self, DatabaseError>
+    fn from_row(row: &Row) -> Result<Self, DatabaseError>
     {
         Ok(
             EventSingle {
@@ -431,8 +418,8 @@ impl ToPlain<EventPlain> for EventSingle
             id: Some(self.id),
             parent_id: self.parent_id,
 
-            start_date: self.span.get_start_date(),
-            end_date: self.span.get_end_date(),
+            start_date: Some(self.span.get_start_date()),
+            end_date: Some(self.span.get_end_date()),
             start_time: self.span.get_start_time(),
             end_time: self.span.get_end_time(),
 
@@ -460,7 +447,7 @@ impl EventInstance
 
     pub fn get_parent_id(&self) -> i32 { self.parent_id }
 
-    pub fn from_row(row: &Row) -> Result<Self, DatabaseError>
+    fn from_row(row: &Row) -> Result<Self, DatabaseError>
     {
         Ok(
             EventInstance {
@@ -479,8 +466,8 @@ impl ToPlain<EventPlain> for EventInstance
             id: None,
             parent_id: Some(self.parent_id),
 
-            start_date: self.span.get_start_date(),
-            end_date: self.span.get_end_date(),
+            start_date: Some(self.span.get_start_date()),
+            end_date: Some(self.span.get_end_date()),
             start_time: self.span.get_start_time(),
             end_time: self.span.get_end_time(),
 
@@ -492,18 +479,24 @@ impl ToPlain<EventPlain> for EventInstance
 
 /// This is a serializable representation of an event
 /// (single, recurrent or instance), it has two purposes:
-/// 1) sending events to the client; 2) receiving events
-/// from the client, validating them, and sending them to
-/// the database. Nothing else.
+///
+/// 1) sending events to the client;
+/// 2) receiving events from the client, validating them
+/// and sending them to the database. Nothing else.
 ///
 ///
-/// Single events don't have an rrule.
-/// Recurring events have an rrule value.
-/// Instance events don't have an id and have a parent id.
+/// How to determine the type of the event:
 ///
+/// - Single events don't have an rrule.
+/// - Recurring events have an rrule value.
+/// - Instance events don't have an id and have a parent id.
+/// - Edited instance events (instance events with overridden
+/// dates) have an id and a parent id.
 ///
 /// If you want to create an EventPlain, call `to_plain`
 /// on an `EventSingle`, `EventInstance` or `EventRecurring`.
+///
+/// All fields are optional to allow for PATCH methods.
 ///
 /// You cannot create an `EventSingle`, `EventInstance` or `EventRecurring`
 /// directly from an `EventPlain`. This is by design, there should
@@ -519,15 +512,19 @@ pub struct EventPlain
     pub id: Option<i32>,
     pub parent_id: Option<i32>,
 
-    #[serde(with = "event_plain_serde::date")]
-    pub start_date: NaiveDate,
+    #[serde(default)]
+    #[serde(with = "event_plain_serde::date_option")]
+    pub start_date: Option<NaiveDate>,
 
+    #[serde(default)]
     #[serde(with = "event_plain_serde::time_option")]
     pub start_time: Option<NaiveTime>,
 
-    #[serde(with = "event_plain_serde::date")]
-    pub end_date: NaiveDate,
+    #[serde(default)]
+    #[serde(with = "event_plain_serde::date_option")]
+    pub end_date: Option<NaiveDate>,
 
+    #[serde(default)]
     #[serde(with = "event_plain_serde::time_option")]
     pub end_time: Option<NaiveTime>,
 
@@ -535,17 +532,62 @@ pub struct EventPlain
 }
 
 
-/// Should only be used in conjunction with EventPlain
+/// Should only be used in conjunction with EventPlain.
 #[derive(Serialize, Deserialize, Debug)]
 pub struct RecurrencePlain
 {
-    pub rrule: String,
+    pub rrule: Option<String>,
 
-    #[serde(with = "event_plain_serde::date_vec")]
-    pub exdates: Vec<NaiveDate>,
+    #[serde(default)]
+    #[serde(with = "event_plain_serde::date_vec_option")]
+    pub exdates: Option<Vec<NaiveDate>>,
 
-    #[serde(with = "event_plain_serde::date_vec")]
-    pub rdates: Vec<NaiveDate>
+    #[serde(default)]
+    #[serde(with = "event_plain_serde::date_vec_option")]
+    pub rdates: Option<Vec<NaiveDate>>
+}
+
+impl EventPlain
+{
+    /// Validate the event's data for a non-patch
+    /// request. For example, if you're handling an
+    /// insert request you want to make sure the event
+    /// has at least a `start_date` and an `end_date` and
+    /// also check some other integrity constraints.
+    ///
+    /// List of validation checks:
+    ///
+    /// - Checks if `start_date` and `end_date` are both set.
+    /// - Checks if `end_time` is set if `start_time` is also set
+    /// and vice-versa.
+    /// - Checks if `rrule`, `exdates` and `rdates` are all set
+    /// if `recurrence` is set.
+    ///
+    /// Returns `true` if the event is valid, `false` it it's not.
+    pub fn validate_non_patch(&self) -> bool
+    {
+        if self.start_date.is_none() || self.end_date.is_none()
+        {
+            return false;
+        }
+
+        if self.start_time.is_some() != self.end_time.is_some()
+        {
+            return false;
+        }
+
+        if let Some(recurrence) = &self.recurrence
+        {
+            if recurrence.rrule.is_none()
+                || recurrence.exdates.is_none()
+                || recurrence.rdates.is_none()
+            {
+                return false;
+            }
+        }
+
+        true
+    }
 }
 
 pub trait ToPlain<T: Serialize + Deserialize<'static>>
@@ -553,70 +595,97 @@ pub trait ToPlain<T: Serialize + Deserialize<'static>>
     fn into_plain(self) -> T;
 }
 
+
+/// Provides serde functions for `Option<NaiveDate>`, `Option<NaiveTime>`
+/// and `Option<Vec<NaiveDate>>`.
+///
+/// Dates are formatted like `YYYY-MM-DD`.
+/// Times are formatted like `HH:MM:SS`.
 mod event_plain_serde
 {
     const DATE_FORMAT: &'static str = "%Y-%m-%d";
     const TIME_FORMAT: &'static str = "%H:%M:%S";
 
 
-    pub mod date
+    pub mod date_option
     {
         use chrono::{NaiveDate};
         use serde::{self, Deserialize, Serializer, Deserializer};
         
         use super::DATE_FORMAT;
+        use serde::de::Error;
 
-        pub fn serialize<S>(date: &NaiveDate, serializer: S) -> Result<S::Ok, S::Error>
+        pub fn serialize<S>(date: &Option<NaiveDate>, serializer: S) -> Result<S::Ok, S::Error>
             where
                 S: Serializer,
         {
-            let string = format!("{}", date.format(DATE_FORMAT));
-            serializer.serialize_str(&string)
+            match date
+            {
+                Some(date) => serializer.serialize_str(&format!("{}", date.format(DATE_FORMAT))),
+                None => serializer.serialize_none()
+            }
         }
 
-        pub fn deserialize<'de, D>(deserializer: D) -> Result<NaiveDate, D::Error>
+        pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<NaiveDate>, D::Error>
             where
                 D: Deserializer<'de>,
         {
-            let string = String::deserialize(deserializer)?;
+            let string = Option::<String>::deserialize(deserializer)?;
 
-            NaiveDate::parse_from_str(&string, DATE_FORMAT)
-                .map_err(serde::de::Error::custom)
+            string
+                .map(|s|
+                    NaiveDate::parse_from_str(&s, DATE_FORMAT)
+                        .map_err(serde::de::Error::custom)
+                )
+                .transpose()
         }
     }
 
-    pub mod date_vec
+    pub mod date_vec_option
     {
         use chrono::{NaiveDate};
         use serde::{self, Deserialize, Serializer, Deserializer};
         
         use serde::ser::SerializeSeq;
         use super::DATE_FORMAT;
+        use serde::de::Error;
 
-        pub fn serialize<S>(dates: &Vec<NaiveDate>, serializer: S) -> Result<S::Ok, S::Error>
+        pub fn serialize<S>(dates: &Option<Vec<NaiveDate>>, serializer: S) -> Result<S::Ok, S::Error>
             where
                 S: Serializer,
         {
-            let mut seq = serializer.serialize_seq(Some(dates.len()))?;
-
-            for date in dates
+            match dates
             {
-                seq.serialize_element(&format!("{}", date.format(DATE_FORMAT)));
-            }
+                Some(dates) =>
+                {
+                    let mut seq = serializer.serialize_seq(Some(dates.len()))?;
 
-            seq.end()
+                    for date in dates
+                    {
+                        seq.serialize_element(&format!("{}", date.format(DATE_FORMAT)));
+                    }
+
+                    seq.end()
+                },
+                None => serializer.serialize_none()
+            }
         }
 
-        pub fn deserialize<'de, D>(deserializer: D) -> Result<Vec<NaiveDate>, D::Error>
+        pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<Vec<NaiveDate>>, D::Error>
             where
                 D: Deserializer<'de>,
         {
-            let vec = Vec::<String>::deserialize(deserializer)?;
+            let opt = Option::<Vec<String>>::deserialize(deserializer)?;
 
-            vec.into_iter()
-                .map(|x| NaiveDate::parse_from_str(&x, DATE_FORMAT))
-                .collect::<Result<Vec<NaiveDate>, _>>()
-                .map_err(serde::de::Error::custom)
+            opt
+                .map(|vec|
+                    vec
+                        .into_iter()
+                        .map(|x| NaiveDate::parse_from_str(&x, DATE_FORMAT))
+                        .collect::<Result<Vec<NaiveDate>, _>>()
+                        .map_err(serde::de::Error::custom)
+                )
+                .transpose()
         }
     }
 
