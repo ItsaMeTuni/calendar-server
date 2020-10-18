@@ -1,0 +1,23 @@
+version: "3"
+
+services:
+
+  db:
+    
+    build:
+      context: .
+      dockerfile: db.dockerfile
+
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    environment:
+      - PGDATA=/var/lib/postgresql/data
+      
+    ports:
+      - "6789:5432"
+
+    # postgres password should be defined in .env
+    env_file: .env
+
+volumes:
+  dbdata:

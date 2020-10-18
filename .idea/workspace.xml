@@ -23,19 +23,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9f56633b-031c-42f4-acec-04a556814e0d" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/../.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/appointment.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/calendar/calendar.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/calendar/calendar.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/calendar/event/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/calendar/event/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/helpers.rs" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/routes/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/routes/routes_calendar.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/routes_calendar.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/routes/routes_tenant.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/tenant.rs" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -50,7 +42,7 @@
     </option>
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="MacroExpansionManager">
     <option name="directoryName" value="nymm4kr4" />
@@ -109,6 +101,7 @@
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="WindowStateProjectService">
     <state x="362" y="195" width="1192" height="671" key="#Run" timestamp="1601313442486">
@@ -131,21 +124,21 @@
       <screen x="0" y="0" width="1920" height="1039" />
     </state>
     <state x="744" y="310" width="424" height="498" key="FileChooserDialogImpl/0.0.1920.1039/1920.0.1920.1080@0.0.1920.1039" timestamp="1601313115091" />
-    <state width="1920" height="981" key="GridCell.Tab.0.bottom" timestamp="1602957852022">
+    <state width="1920" height="981" key="GridCell.Tab.0.bottom" timestamp="1602980512484">
       <screen x="0" y="0" width="1920" height="1039" />
     </state>
-    <state width="1920" height="981" key="GridCell.Tab.0.bottom/0.0.1920.1039/1920.0.1920.1080@0.0.1920.1039" timestamp="1602957852022" />
-    <state width="1920" height="981" key="GridCell.Tab.0.center" timestamp="1602957852022">
+    <state width="1920" height="981" key="GridCell.Tab.0.bottom/0.0.1920.1039/1920.0.1920.1080@0.0.1920.1039" timestamp="1602980512484" />
+    <state width="1920" height="981" key="GridCell.Tab.0.center" timestamp="1602980512484">
       <screen x="0" y="0" width="1920" height="1039" />
     </state>
-    <state width="1920" height="981" key="GridCell.Tab.0.center/0.0.1920.1039/1920.0.1920.1080@0.0.1920.1039" timestamp="1602957852022" />
-    <state width="1920" height="981" key="GridCell.Tab.0.left" timestamp="1602957852022">
+    <state width="1920" height="981" key="GridCell.Tab.0.center/0.0.1920.1039/1920.0.1920.1080@0.0.1920.1039" timestamp="1602980512484" />
+    <state width="1920" height="981" key="GridCell.Tab.0.left" timestamp="1602980512484">
       <screen x="0" y="0" width="1920" height="1039" />
     </state>
-    <state width="1920" height="981" key="GridCell.Tab.0.left/0.0.1920.1039/1920.0.1920.1080@0.0.1920.1039" timestamp="1602957852022" />
-    <state width="1920" height="981" key="GridCell.Tab.0.right" timestamp="1602957852022">
+    <state width="1920" height="981" key="GridCell.Tab.0.left/0.0.1920.1039/1920.0.1920.1080@0.0.1920.1039" timestamp="1602980512484" />
+    <state width="1920" height="981" key="GridCell.Tab.0.right" timestamp="1602980512484">
       <screen x="0" y="0" width="1920" height="1039" />
     </state>
-    <state width="1920" height="981" key="GridCell.Tab.0.right/0.0.1920.1039/1920.0.1920.1080@0.0.1920.1039" timestamp="1602957852022" />
+    <state width="1920" height="981" key="GridCell.Tab.0.right/0.0.1920.1039/1920.0.1920.1080@0.0.1920.1039" timestamp="1602980512484" />
   </component>
 </project>
