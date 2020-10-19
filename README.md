@@ -1,4 +1,4 @@
-This project aims to develop a fast and easy to setup calendar backend that complies with RFC 5545 and exposes a RESTful API for manipulating events and calendars.
+This project aims to develop a fast and easy to setup calendar backend that exposes a RESTful API for manipulating events and calendars.
 
 **Why?** Because Google Calendar's API, which seems to be the best option for a calendar backend at the moment, sucks. And because it's fun :)
 
