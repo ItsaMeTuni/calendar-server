@@ -10,6 +10,18 @@ Properties:
 
 ## Actions
 
+### List calendars
+
+`GET /api/calendars`
+
+Returns an array of Calendar objects.
+
+#### Optional parameters 
+
+Parameter name | Type | Description
+-|-|-
+`offset` | number (>= 0) | Skip this many rows when querying for calendars. Useful when the query results in more calendars than the [page size](./configurations.md#page-size) allows for.
+
 ### Get calendar
 
 `GET /api/calendars/<calendar-id>`
@@ -63,7 +75,7 @@ Location: /calendars/1/events/6
 
 {
     "id": 6,
-    "parent_id: 5,
+    "parent_id": 5,
     "start_date": "2020-01-08",
     "start_time": "16:00",
     "end_date": "2020-01-08",
@@ -90,6 +102,21 @@ Properties:
 
 ## Actions
 
+### List events (##UNIMPLEMENTED##)
+
+`GET /calendars/<calendar-id>/events`
+
+Returns an array of Event objects. Does **not** return event instances, if you want that take a look [here](#get-event-instances).
+
+#### Optional parameters 
+
+Parameter name | Type | Description
+-|-|-
+`since` | string (ISO date or ISO date-time) | Events start date lowe bound (inclusive). Only return events with a start date bigger than this value.
+`until` | string (ISO date or ISO date-time) | Events end date upper bound (inclusive). Only return events with an end date smaller than this value.
+`offset` | number (>= 0) | Skip this many rows when querying for the events. Useful when the query results in more events than the [page size](./configurations.md#page-size) allows for.
+
+
 ### Get event
 
 `GET /calendars/<calendar-id>/events/<event-id>`
@@ -108,9 +135,23 @@ Expects an Event object without id.
 
 Expects an Event object in which all fields are optional. If the event's `id` field is specified it **must** be the same as `<event-id>`. All fields that are not specified in the request's body are left unchanged.
 
-### Get event instances
 
-`GET /calendars/<calendar-id>/events/<event-id>/instances?from=<start-date>&to=<end-date>`
+### Get event instances
+<a name="get-event-instances"></a>
+
+`GET /calendars/<calendar-id>/events/<event-id>/instances`
 
 Returns an array of Event objects that are _event instances_ of the event. Returns 404 if the event is not recurring.
 
+#### Required parameters
+
+Parameter name | Type | Description
+-|-|-
+`since` | string (ISO date) | Query event instances that happen at or after this date.
+`until` | string (ISO date) | Query event instances that happen at or before this date.
+
+#### Optional parameters 
+
+Parameter name | Type | Description
+-|-|-
+`offset` | number (>= 0) | Skip this many rows when querying for the instances. Useful when the query results in more event instances than the [page size](./configurations.md#page-size) allows for.
