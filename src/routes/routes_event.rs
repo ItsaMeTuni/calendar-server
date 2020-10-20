@@ -8,6 +8,8 @@ use chrono::{NaiveDate, NaiveTime};
 use std::str::FromStr;
 use postgres::types::ToSql;
 use std::ops::Add;
+use crate::configs::Configs;
+use rocket::State;
 
 
 fn get_event_by_id(db: &mut PgsqlConn, calendar_id: i32, event_id: i32) -> Result<Option<Event>, DatabaseError>
@@ -140,9 +142,19 @@ pub fn update_event(mut db: PgsqlConn, calendar_id: i32, event_id: i32, event_da
     RouteResult::Ok(())
 }
 
-#[get("/calendars/<calendar_id>/events/<event_id>/instances?<from>&<to>")]
-pub fn get_instances(mut db: PgsqlConn, calendar_id: i32, event_id: i32, from: String, to: String) -> RouteResult<Vec<EventPlain>>
+#[get("/calendars/<calendar_id>/events/<event_id>/instances?<since>&<until>&<offset>")]
+pub fn get_instances(
+    mut db: PgsqlConn,
+    configs: State<Configs>,
+    calendar_id: i32,
+    event_id: i32,
+    since: String,
+    until: String,
+    offset: Option<u32>
+) -> RouteResult<Vec<EventPlain>>
 {
+    let offset = offset.unwrap_or(0);
+
     if let Some(event) = get_event_by_id(&mut db, calendar_id, event_id)?
     {
         match event
@@ -150,8 +162,10 @@ pub fn get_instances(mut db: PgsqlConn, calendar_id: i32, event_id: i32, from: S
             Event::Recurring(event) => RouteResult::Ok(
 
                 event
-                    .generate_instances(NaiveDate::from_str(&from)?, NaiveDate::from_str(&to)?)?
+                    .generate_instances(NaiveDate::from_str(&since)?, NaiveDate::from_str(&until)?)?
                     .into_iter()
+                    .skip(offset as usize) //skip offset
+                    .take(configs.get_page_size() as usize) //limit to page size
                     .map(|e| e.into_plain())
                     .collect()
 

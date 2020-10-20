@@ -9,6 +9,8 @@ mod routes;
 mod calendar;
 mod event;
 mod recurrence;
+mod configs;
+mod env_helpers;
 
 extern crate dotenv;
 #[macro_use] extern crate thiserror;
@@ -17,7 +19,8 @@ extern crate dotenv;
 
 use crate::connection_pool::PgsqlPool;
 use rocket::Request;
-use std::env;
+use env_helpers::{get_env, get_env_default};
+use crate::configs::Configs;
 
 fn main()
 {
@@ -25,6 +28,7 @@ fn main()
 
     rocket::ignite()
         .manage(get_pgsql_pool())
+        .manage(Configs::get_configs())
         .mount("/api", routes::get_routes())
         .register(catchers![not_found])
         .launch();
@@ -46,21 +50,7 @@ fn get_pgsql_pool() -> PgsqlPool
     PgsqlPool::new(&format!("host={} port={} dbname={} user={} password={}", pg_host, pg_port, pg_user, pg_user, pg_password))
 }
 
-fn get_env(name: &str) -> String
-{
-    env::vars()
-        .find(|(key, _)| key == name)
-        .expect(&format!("Missing {} environment variable.", name))
-        .1
-}
 
-fn get_env_default(name: &str, default: &str) -> String
-{
-    env::vars()
-        .find(|(key, _)| key == name)
-        .map(|(_, value)| value)
-        .unwrap_or(default.to_owned())
-}
 
 #[catch(404)]
 fn not_found(_req: &Request) -> () {}
