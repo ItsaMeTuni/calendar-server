@@ -293,8 +293,6 @@ pub fn list_events(
         return RouteResult::BadRequest(None);
     }
 
-    let offset = offset.unwrap_or(0);
-
     /// A query parameter can only have one type and we want to be able to
     /// use `since` and `until` as either a date or a date-time, so we have
     /// a pair of parameters for each variable, one for each type. If, for example,
@@ -320,11 +318,54 @@ pub fn list_events(
         &until.as_ref().and_then(|x| x.as_naive_date_time() .map(|dt| dt.clone())),
         &until.as_ref().and_then(|x| x.as_naive_date()      .map(|d|   d.clone())),
 
-        &(offset as i64),
+        &(offset.unwrap_or(0) as i64),
         &(configs.get_page_size() as i64),
     ]);
 
     RouteResult::Ok(
+        rows?
+            .into_iter()
+            .map::<Result<EventPlain, _>, _>(|r| Event::from_row(&r).map(|e| e.into_plain()))
+            .collect::<Result<Vec<EventPlain>, _>>()?
+    )
+}
+
+#[get("/calendars/<calendar_id>/events/changes?<since>&<offset>")]
+pub fn check_for_changes(
+    mut db: PgsqlConn,
+    configs: State<Configs>,
+    calendar_id: i32,
+    since: NaiveDateOrTime,
+    offset: Option<u32>
+) -> RouteResult<Vec<EventPlain>>
+{
+    if since.as_naive_time().is_some()
+    {
+        return RouteResult::BadRequest(None);
+    }
+
+    let query = "
+        SELECT * FROM events
+        WHERE
+            calendar_id = $1
+            AND ($2::TIMESTAMP IS NULL OR last_modified >= $2::TIMESTAMP)
+            AND ($3::DATE IS NULL OR last_modified >= $3::DATE)
+        OFFSET $4
+        LIMIT $5;
+    ";
+
+    let rows = db.query(query, &[
+        &calendar_id,
+
+        &since.as_naive_date_time(),
+        &since.as_naive_date(),
+
+
+        &(offset.unwrap_or(0) as i64),
+        &(configs.get_page_size() as i64),
+    ]);
+
+    RouteResult::Ok (
         rows?
             .into_iter()
             .map::<Result<EventPlain, _>, _>(|r| Event::from_row(&r).map(|e| e.into_plain()))

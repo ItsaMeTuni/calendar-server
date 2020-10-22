@@ -29,6 +29,7 @@ pub fn get_routes() -> Vec<Route>
         routes_event::get_instances,
         routes_event::update_event,
         routes_event::list_events,
+        routes_event::check_for_changes,
     ]
 }
 
