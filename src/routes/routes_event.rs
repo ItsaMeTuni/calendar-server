@@ -306,7 +306,9 @@ pub fn list_events(
             AND ($2::TIMESTAMP IS NULL OR start_date + start_time >= $2::TIMESTAMP)
             AND ($3::DATE IS NULL OR start_date >= $3::DATE)
             AND ($4::TIMESTAMP IS NULL OR end_date + end_time <= $4::TIMESTAMP)
-            AND ($5::DATE IS NULL OR end_date <= $5::DATE);
+            AND ($5::DATE IS NULL OR end_date <= $5::DATE)
+        OFFSET $6
+        LIMIT $7;
     ";
 
     let rows = db.query(query, &[
@@ -317,13 +319,14 @@ pub fn list_events(
 
         &until.as_ref().and_then(|x| x.as_naive_date_time() .map(|dt| dt.clone())),
         &until.as_ref().and_then(|x| x.as_naive_date()      .map(|d|   d.clone())),
+
+        &(offset as i64),
+        &(configs.get_page_size() as i64),
     ]);
 
     RouteResult::Ok(
         rows?
             .into_iter()
-            .skip(offset as usize)
-            .take(configs.get_page_size() as usize)
             .map::<Result<EventPlain, _>, _>(|r| Event::from_row(&r).map(|e| e.into_plain()))
             .collect::<Result<Vec<EventPlain>, _>>()?
     )
