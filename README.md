@@ -10,7 +10,10 @@ This is **NOT** aimed at being a personal calendar server, this is meant to be a
 
 **Note:** I suck, I don't have a lot of knowledge on security, databases, calendar stuff, or even rust. I know a bit of each, but I'm not an expert by any means, so please if there's anything I can improve please let me know :)
 
+## Documentation
 
-## How do develop
+You can read the documentation of the project [here](./docs).
+
+## How to develop
 
 Clone the repo and run `docker-compose up -d`, this will start the postgres container. Then you can do `cargo run` to run the server or run it from your IDE of preference.
