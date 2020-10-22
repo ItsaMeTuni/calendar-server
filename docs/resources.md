@@ -20,7 +20,7 @@ Returns an array of Calendar objects.
 
 Parameter name | Type | Description
 -|-|-
-`offset` | number (>= 0) | Skip this many rows when querying for calendars. Useful when the query results in more calendars than the [page size](./configurations.md#page-size) allows for.
+`offset` | number (>= 0) | [Offset parameter](./common.md#param-offset)
 
 ### Get calendar
 
@@ -114,8 +114,7 @@ Parameter name | Type | Description
 -|-|-
 `since` | string (ISO date or ISO date-time) | Events start date lowe bound (inclusive). Only return events with a start date bigger than this value.
 `until` | string (ISO date or ISO date-time) | Events end date upper bound (inclusive). Only return events with an end date smaller than this value.
-`offset` | number (>= 0) | Skip this many rows when querying for the events. Useful when the query results in more events than the [page size](./configurations.md#page-size) allows for.
-
+`offset` | number (>= 0) | [Offset parameter](./common.md#param-offset)
 
 ### Get event
 
@@ -154,4 +153,22 @@ Parameter name | Type | Description
 
 Parameter name | Type | Description
 -|-|-
-`offset` | number (>= 0) | Skip this many rows when querying for the instances. Useful when the query results in more event instances than the [page size](./configurations.md#page-size) allows for.
+`offset` | number (>= 0) | [Offset parameter](./common.md#param-offset)
+
+### Check for updates
+
+`GET /calendars/<calendar-id>/events/changes`
+
+Query for events that were modified at or after the date/date-time specified in the `since` parameter. I.e. query for events with `last_modified` >= `since` param.
+
+#### Required parameters
+
+Parameter name | Type | Description
+-|-|-
+`since` | string (ISO date or ISO date-time) | Query event instances that were modified at or after this date/date-time.
+
+#### Optional parameters
+
+Parameter name | Type | Description
+-|-|-
+`offset` | number (>= 0) | [Offset parameter](./common.md#param-offset)
