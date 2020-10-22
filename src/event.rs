@@ -242,6 +242,7 @@ pub struct EventRecurring
     id: i32,
     span: EventSpan,
     recurrence: EventRecurrence,
+    last_modified: NaiveDateTime,
 }
 
 /// If you want to get an event you have to get it from
@@ -325,6 +326,7 @@ impl EventRecurring
                 id: get_cell_from_row(row, "id")?,
                 span,
                 recurrence,
+                last_modified: get_cell_from_row(row, "last_modified")?,
             }
         )
     }
@@ -350,6 +352,8 @@ impl ToPlain<EventPlain> for EventRecurring
                     rdates: Some(self.recurrence.rdates),
                 }
             ),
+
+            last_modified: Some(self.last_modified),
         }
     }
 }
@@ -388,6 +392,8 @@ pub struct EventSingle
     /// 3. The parent_id of the `cde` event was set to `abc`.
     parent_id: Option<i32>,
     span: EventSpan,
+
+    last_modified: NaiveDateTime,
 }
 
 impl EventSingle
@@ -405,6 +411,7 @@ impl EventSingle
                 id: get_cell_from_row(row, "id")?,
                 parent_id: get_cell_from_row(row, "parent_event_id")?,
                 span: EventSpan::from_row(row)?,
+                last_modified: get_cell_from_row(row, "last_modified")?,
             }
         )
     }
@@ -424,6 +431,8 @@ impl ToPlain<EventPlain> for EventSingle
             end_time: self.span.get_end_time(),
 
             recurrence: None,
+
+            last_modified: Some(self.last_modified),
         }
     }
 }
@@ -472,6 +481,8 @@ impl ToPlain<EventPlain> for EventInstance
             end_time: self.span.get_end_time(),
 
             recurrence: None,
+
+            last_modified: None,
         }
     }
 }
@@ -529,6 +540,9 @@ pub struct EventPlain
     pub end_time: Option<NaiveTime>,
 
     pub recurrence: Option<RecurrencePlain>,
+
+    #[serde(with = "event_plain_serde::date_time_option")]
+    pub last_modified: Option<NaiveDateTime>,
 }
 
 
@@ -604,7 +618,8 @@ pub trait ToPlain<T: Serialize + Deserialize<'static>>
 mod event_plain_serde
 {
     const DATE_FORMAT: &'static str = "%Y-%m-%d";
-    const TIME_FORMAT: &'static str = "%H:%M:%S";
+    const TIME_FORMAT: &'static str = "%H:%M";
+    const DATE_TIME_FORMAT: &'static str = "%Y-%m-%dT%H:%M";
 
 
     pub mod date_option
@@ -716,6 +731,39 @@ mod event_plain_serde
             string
                 .map(
                     |string| NaiveTime::parse_from_str(&string, TIME_FORMAT)
+                        .map_err(serde::de::Error::custom)
+                )
+                .transpose()
+        }
+    }
+
+    pub mod date_time_option
+    {
+        use chrono::{NaiveTime, NaiveDateTime};
+        use serde::{self, Deserialize, Serializer, Deserializer};
+
+        use super::DATE_TIME_FORMAT;
+
+        pub fn serialize<S>(date: &Option<NaiveDateTime>, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: Serializer,
+        {
+            match date
+            {
+                Some(date) => serializer.serialize_str(&format!("{}", date.format(DATE_TIME_FORMAT))),
+                None => serializer.serialize_none(),
+            }
+        }
+
+        pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<NaiveDateTime>, D::Error>
+            where
+                D: Deserializer<'de>,
+        {
+            let string = Option::<String>::deserialize(deserializer)?;
+
+            string
+                .map(
+                    |string| NaiveDateTime::parse_from_str(&string, DATE_TIME_FORMAT)
                         .map_err(serde::de::Error::custom)
                 )
                 .transpose()
