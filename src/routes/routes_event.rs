@@ -4,12 +4,105 @@ use crate::event::{Event, EventPlain, ToPlain};
 use crate::database_helpers::{FromRow, get_cell_from_row};
 use rocket_contrib::json::Json;
 use crate::database_error::{DatabaseErrorKind, DatabaseError};
-use chrono::{NaiveDate, NaiveTime};
-use std::str::FromStr;
-use postgres::types::ToSql;
 use std::ops::Add;
 use crate::configs::Configs;
 use rocket::State;
+use rocket::request::FromFormValue;
+use rocket::http::RawStr;
+use chrono::{NaiveDateTime, NaiveDate, NaiveTime};
+use std::ops::{Deref, DerefMut};
+use postgres::types::{ToSql, Type, IsNull};
+use postgres::types::private::BytesMut;
+use std::error::Error;
+use std::fmt::Debug;
+use std::str::FromStr;
+
+
+
+
+
+/// Store a NaiveDate, NaiveTime or NaiveDateTime without knowing
+/// exactly which one it is. Generally used as route query parameters
+/// that accept more than one of these types.
+///
+/// ToSql is purposefully not implemented for this type, since query parameters
+/// can only have one type and NaiveDateOrTime can map to three different
+/// SQL types (TIMESTAMP, DATE, and TIME).
+#[derive(Debug)]
+pub enum NaiveDateOrTime
+{
+    Date(NaiveDate),
+    Time(NaiveTime),
+    DateTime(NaiveDateTime)
+}
+
+impl NaiveDateOrTime
+{
+    pub fn as_naive_date(&self) -> Option<&NaiveDate>
+    {
+        match self
+        {
+            NaiveDateOrTime::Date(d) => Some(d),
+            NaiveDateOrTime::Time(_) => None,
+            NaiveDateOrTime::DateTime(_) => None,
+        }
+    }
+
+    pub fn as_naive_time(&self) -> Option<&NaiveTime>
+    {
+        match self
+        {
+            NaiveDateOrTime::Date(_) => None,
+            NaiveDateOrTime::Time(t) => Some(t),
+            NaiveDateOrTime::DateTime(_) => None,
+        }
+    }
+
+    pub fn as_naive_date_time(&self) -> Option<&NaiveDateTime>
+    {
+        match self
+        {
+            NaiveDateOrTime::Date(_) => None,
+            NaiveDateOrTime::Time(_) => None,
+            NaiveDateOrTime::DateTime(dt) => Some(dt),
+        }
+    }
+}
+
+impl FromStr for NaiveDateOrTime
+{
+    type Err = chrono::ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err>
+    {
+        NaiveDateTime::parse_from_str(s, "%Y-%m-%dT%H:%M")
+            .map(|dt| NaiveDateOrTime::DateTime(dt))
+
+            .or_else(|_|
+                NaiveDate::parse_from_str(s, "%Y-%m-%d")
+                    .map(|d| NaiveDateOrTime::Date(d))
+            )
+
+            .or_else(|_|
+                NaiveTime::parse_from_str(s, "%H:%M")
+                    .map(|t| NaiveDateOrTime::Time(t))
+            )
+    }
+}
+
+impl<'v> FromFormValue<'v> for NaiveDateOrTime
+{
+    type Error = chrono::ParseError;
+
+    fn from_form_value(form_value: &'v RawStr) -> Result<Self, Self::Error>
+    {
+        NaiveDateOrTime::from_str(form_value.as_str())
+    }
+}
+
+
+
+
 
 
 fn get_event_by_id(db: &mut PgsqlConn, calendar_id: i32, event_id: i32) -> Result<Option<Event>, DatabaseError>
@@ -29,6 +122,10 @@ fn get_event_by_id(db: &mut PgsqlConn, calendar_id: i32, event_id: i32) -> Resul
         Ok(None)
     }
 }
+
+
+
+
 
 
 #[get("/calendars/<calendar_id>/events/<event_id>")]
@@ -177,4 +274,57 @@ pub fn get_instances(
     {
         RouteResult::NotFound
     }
+}
+
+#[get("/calendars/<calendar_id>/events?<since>&<until>&<offset>")]
+pub fn list_events(
+    mut db: PgsqlConn,
+    configs: State<Configs>,
+    calendar_id: i32,
+    since: Option<NaiveDateOrTime>,
+    until: Option<NaiveDateOrTime>,
+    offset: Option<u32>
+) -> RouteResult<Vec<EventPlain>>
+{
+    // since and until can only be date or date-times
+    if (since.is_some() && since.as_ref().unwrap().as_naive_time().is_some())
+        || (until.is_some() && until.as_ref().unwrap().as_naive_time().is_some())
+    {
+        return RouteResult::BadRequest(None);
+    }
+
+    let offset = offset.unwrap_or(0);
+
+    /// A query parameter can only have one type and we want to be able to
+    /// use `since` and `until` as either a date or a date-time, so we have
+    /// a pair of parameters for each variable, one for each type. If, for example,
+    /// `since` is a date, `$2` will be `NULL`.
+    let query = "
+        SELECT * FROM events
+        WHERE
+            calendar_id = $1
+            AND ($2::TIMESTAMP IS NULL OR start_date + start_time >= $2::TIMESTAMP)
+            AND ($3::DATE IS NULL OR start_date >= $3::DATE)
+            AND ($4::TIMESTAMP IS NULL OR end_date + end_time <= $4::TIMESTAMP)
+            AND ($5::DATE IS NULL OR end_date <= $5::DATE);
+    ";
+
+    let rows = db.query(query, &[
+        &calendar_id,
+
+        &since.as_ref().and_then(|x| x.as_naive_date_time() .map(|dt| dt.clone())),
+        &since.as_ref().and_then(|x| x.as_naive_date()      .map(|d|   d.clone())),
+
+        &until.as_ref().and_then(|x| x.as_naive_date_time() .map(|dt| dt.clone())),
+        &until.as_ref().and_then(|x| x.as_naive_date()      .map(|d|   d.clone())),
+    ]);
+
+    RouteResult::Ok(
+        rows?
+            .into_iter()
+            .skip(offset as usize)
+            .take(configs.get_page_size() as usize)
+            .map::<Result<EventPlain, _>, _>(|r| Event::from_row(&r).map(|e| e.into_plain()))
+            .collect::<Result<Vec<EventPlain>, _>>()?
+    )
 }
