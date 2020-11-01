@@ -18,7 +18,7 @@
 
 **What about X?** Other calendar backends I've found around the internet are either old, run on php, or have horrible documentation.
 
-This is **NOT** aimed at being a personal calendar server, this is meant to be a calendar backend used by your application's backend.
+This is **NOT** aimed at being a personal calendar server, this is meant to be a calendar backend used by your application's frontend/backend.
 
 **Disclaimer:** I'm a hobbyist, which means I'm not an expert in anything. Some mentoring would be helpful.
 
@@ -33,6 +33,9 @@ You can read the documentation of the project [here](./docs).
 ```
 POSTGRES_PASSWORD=changeme
 POSTGRES_USER=calendarserver
+
+FA_DATABASE_PASSWORD=changeme
+FA_FUSIONAUTH_MEMORY=512M
 
 DB_ADDR=localhost:6789
 ```
