@@ -28,7 +28,16 @@ You can read the documentation of the project [here](./docs).
 
 ## How to develop
 
-Clone the repo and run `docker-compose up -d`, this will start the postgres container. Then you can do `cargo run` to run the server or run it from your IDE of preference.
+1. Clone the repo
+2. Create a `.env` file at the root of the repository with the following contents
+```
+POSTGRES_PASSWORD=changeme
+POSTGRES_USER=calendarserver
+
+DB_ADDR=localhost:6789
+```
+3. Run `docker-compose up -d`, this will start the postgres container.
+4. Run `cargo run` to run the server or run it from your IDE of preference.
 
 ## What Calendar Server does **NOT** support
 
