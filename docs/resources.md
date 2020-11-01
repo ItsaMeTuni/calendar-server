@@ -102,7 +102,7 @@ Properties:
 
 ## Actions
 
-### List events (##UNIMPLEMENTED##)
+### List events
 
 `GET /calendars/<calendar-id>/events`
 
@@ -155,7 +155,7 @@ Parameter name | Type | Description
 -|-|-
 `offset` | number (>= 0) | [Offset parameter](./common.md#param-offset)
 
-### Check for updates
+### Check for changes
 
 `GET /calendars/<calendar-id>/events/changes`
 

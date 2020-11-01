@@ -1,0 +1,49 @@
+- [x] Events
+    - [x] List
+    - [x] Get
+    - [x] Insert
+    - [x] Update
+    - [x] Delete
+    - [x] Check for changes
+    - [x] Get instances
+    - [ ] Use UUID instead of serial ID
+    - [ ] Watch webhook for all events
+    - [ ] Watch webhook for specific events
+    - [ ] Watch webhook for specific event's instances
+- [ ] Calendars
+    - [ ] List
+    - [x] Get
+    - [x] Insert
+    - [ ] Update
+    - [ ] Delete
+    - [ ] Check for changes
+    - [ ] Use UUID instead of serial ID
+    - [ ] Watch webhook
+- [ ] Users and ACL
+    - [ ] FusionAuth integration
+    - [ ] Super user
+    - [ ] Calendar owner
+    - [ ] Events read-write-self permissions
+    - [ ] Events read-write-all permissions
+    - [ ] Calendar and events read-only permissions
+    - [ ] Calendar read-write permissions (grants Events read-write-all)
+    - [ ] Webhook creation permission
+- [ ] Event instance calculation algo
+    - [x] Implement DAILY FREQ
+    - [x] Implement WEEKLY FREQ
+    - [x] Implement MONTHLY FREQ
+    - [x] Implement YEARLY FREQ
+    - [x] Implement BYMONTH constraint
+    - [ ] Implement BYWEEKNO constraint
+    - [x] Implement BYYEARDAY constraint
+    - [x] Implement BYMONTHDAY constraint
+    - [x] Implement BYDAY constraint
+    - [ ] Implement BYSETPOS constraint
+    - [x] Implement COUNT
+    - [x] Implement UNTIL
+    - [x] Implement INTERVAL
+    - [ ] Write more tests
+- [ ] Batch requests
+- [ ] Create simple website
+- [ ] Add examples to documentation
+- [ ] Implement iCal import/export (maybe?)

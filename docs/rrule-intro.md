@@ -15,4 +15,4 @@ The RRULE is a string format used to describe event recurrence. Here are a few e
 
 **Possible values for `BYMONTHDAY`:** 1 to 31. Caveat: if the month does not have the `BYMONTHDAY` day (like Feb 30), the event will never occur on that month and that day.
 
-There are many more options and configurations. I recommend that you read the RFC 5545 to learn more about it.
+There are many more options and configurations. I recommend that you read the [Recurrence Rule section of RFC 5545](https://tools.ietf.org/html/rfc5545#section-3.3.10) to learn more about it.
