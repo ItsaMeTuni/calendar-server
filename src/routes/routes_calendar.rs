@@ -1,7 +1,7 @@
 use crate::connection_pool::PgsqlConn;
 use crate::calendar::{Calendar};
 use crate::routes::RouteResult;
-use crate::database_helpers::FromRow;
+use crate::database_helpers::{FromRow, get_cell_from_row};
 use rocket_contrib::json::Json;
 use crate::database_error::{DatabaseError, DatabaseErrorKind};
 
@@ -26,6 +26,23 @@ pub fn get_calendar(mut db: PgsqlConn, calendar_id: i32) -> RouteResult<Calendar
         RouteResult::NotFound
     }
 }
+
+#[get("/calendars?<offset>")]
+pub fn list_calendars(mut db: PgsqlConn, offset: Option<u32>) -> RouteResult<Vec<Calendar>>
+{
+    let query = "SELECT * FROM calendars OFFSET $1;";
+
+    let rows = db.query(query, &[
+        &(offset.unwrap_or(0) as i64),
+    ])?;
+
+    RouteResult::Ok(
+        rows.into_iter()
+            .map(|row| Calendar::from_row(&row))
+            .collect::<Result<Vec<_>, _>>()?
+    )
+}
+
 
 /// Inserts a calendar into the database and returns it.
 ///

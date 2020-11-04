@@ -23,6 +23,7 @@ pub fn get_routes() -> Vec<Route>
     routes![
         routes_calendar::get_calendar,
         routes_calendar::insert_calendar,
+        routes_calendar::list_calendars,
 
         routes_event::get_event,
         routes_event::insert_event,

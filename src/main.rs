@@ -47,6 +47,8 @@ fn get_pgsql_pool() -> PgsqlPool
     let pg_password = get_env("POSTGRES_PASSWORD");
     let pg_user = get_env("POSTGRES_USER");
 
+    println!("Connecting to DB at {}:{}", pg_host, pg_port);
+
     PgsqlPool::new(&format!("host={} port={} dbname={} user={} password={}", pg_host, pg_port, pg_user, pg_user, pg_password))
 }
 
