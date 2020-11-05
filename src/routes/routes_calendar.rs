@@ -4,6 +4,7 @@ use crate::routes::RouteResult;
 use crate::database_helpers::{FromRow, get_cell_from_row};
 use rocket_contrib::json::Json;
 use crate::database_error::{DatabaseError, DatabaseErrorKind};
+use crate::routes::common_query_params::CommonQueryParams;
 
 /// Gets a calendar by id from the database.
 ///
@@ -27,13 +28,17 @@ pub fn get_calendar(mut db: PgsqlConn, calendar_id: i32) -> RouteResult<Calendar
     }
 }
 
-#[get("/calendars?<offset>")]
-pub fn list_calendars(mut db: PgsqlConn, offset: Option<u32>) -> RouteResult<Vec<Calendar>>
+/// Lists all calendars in the database.
+///
+/// Response codes: 200, 500
+#[get("/calendars")]
+pub fn list_calendars(mut db: PgsqlConn, shared_params: CommonQueryParams) -> RouteResult<Vec<Calendar>>
 {
-    let query = "SELECT * FROM calendars OFFSET $1;";
+    let query = "SELECT * FROM calendars OFFSET $1 LIMIT $2;";
 
     let rows = db.query(query, &[
-        &(offset.unwrap_or(0) as i64),
+        &shared_params.offset(),
+        &shared_params.page_size(),
     ])?;
 
     RouteResult::Ok(

@@ -16,9 +16,7 @@ use postgres::types::private::BytesMut;
 use std::error::Error;
 use std::fmt::Debug;
 use std::str::FromStr;
-
-
-
+use crate::routes::common_query_params::CommonQueryParams;
 
 
 /// Store a NaiveDate, NaiveTime or NaiveDateTime without knowing
@@ -239,19 +237,16 @@ pub fn update_event(mut db: PgsqlConn, calendar_id: i32, event_id: i32, event_da
     RouteResult::Ok(())
 }
 
-#[get("/calendars/<calendar_id>/events/<event_id>/instances?<since>&<until>&<offset>")]
+#[get("/calendars/<calendar_id>/events/<event_id>/instances?<since>&<until>")]
 pub fn get_instances(
     mut db: PgsqlConn,
-    configs: State<Configs>,
     calendar_id: i32,
     event_id: i32,
     since: String,
     until: String,
-    offset: Option<u32>
+    common_params: CommonQueryParams,
 ) -> RouteResult<Vec<EventPlain>>
 {
-    let offset = offset.unwrap_or(0);
-
     if let Some(event) = get_event_by_id(&mut db, calendar_id, event_id)?
     {
         match event
@@ -261,8 +256,8 @@ pub fn get_instances(
                 event
                     .generate_instances(NaiveDate::from_str(&since)?, NaiveDate::from_str(&until)?)?
                     .into_iter()
-                    .skip(offset as usize) //skip offset
-                    .take(configs.get_page_size() as usize) //limit to page size
+                    .skip(common_params.offset() as usize) //skip offset
+                    .take(common_params.page_size() as usize) //limit to page size
                     .map(|e| e.into_plain())
                     .collect()
 
@@ -276,14 +271,13 @@ pub fn get_instances(
     }
 }
 
-#[get("/calendars/<calendar_id>/events?<since>&<until>&<offset>")]
+#[get("/calendars/<calendar_id>/events?<since>&<until>")]
 pub fn list_events(
     mut db: PgsqlConn,
-    configs: State<Configs>,
     calendar_id: i32,
     since: Option<NaiveDateOrTime>,
     until: Option<NaiveDateOrTime>,
-    offset: Option<u32>
+    common_params: CommonQueryParams,
 ) -> RouteResult<Vec<EventPlain>>
 {
     // since and until can only be date or date-times
@@ -318,8 +312,8 @@ pub fn list_events(
         &until.as_ref().and_then(|x| x.as_naive_date_time() .map(|dt| dt.clone())),
         &until.as_ref().and_then(|x| x.as_naive_date()      .map(|d|   d.clone())),
 
-        &(offset.unwrap_or(0) as i64),
-        &(configs.get_page_size() as i64),
+        &common_params.offset(),
+        &common_params.page_size(),
     ]);
 
     RouteResult::Ok(
@@ -330,13 +324,12 @@ pub fn list_events(
     )
 }
 
-#[get("/calendars/<calendar_id>/events/changes?<since>&<offset>")]
+#[get("/calendars/<calendar_id>/events/changes?<since>")]
 pub fn check_for_changes(
     mut db: PgsqlConn,
-    configs: State<Configs>,
+    common_params: CommonQueryParams,
     calendar_id: i32,
     since: NaiveDateOrTime,
-    offset: Option<u32>
 ) -> RouteResult<Vec<EventPlain>>
 {
     if since.as_naive_time().is_some()
@@ -361,8 +354,8 @@ pub fn check_for_changes(
         &since.as_naive_date(),
 
 
-        &(offset.unwrap_or(0) as i64),
-        &(configs.get_page_size() as i64),
+        &common_params.offset(),
+        &common_params.page_size(),
     ]);
 
     RouteResult::Ok (

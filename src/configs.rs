@@ -1,6 +1,11 @@
 use rocket::request::{FromRequest, Outcome, Request, State};
 use crate::env_helpers::get_env_default;
 
+/// Stores the server's configuration variables.
+///
+/// Note: if you want to get the page size from inside a route
+/// use `CommonQueryParams` instead, which supports the `limit` parameter
+/// and falls back to the configured page size.
 pub struct Configs
 {
     /// Maximum amount of resources a single request can return.
