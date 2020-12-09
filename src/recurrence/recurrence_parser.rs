@@ -78,8 +78,6 @@ pub fn parse(rule: &str) -> Result<RecurrenceRule, RRuleParseError>
         return Err(RRuleParseError::InvalidValue("INTERVAL"));
     }
 
-
-
     // LIMIT
 
     let limit: RecurrenceLimit;
