@@ -1,7 +1,7 @@
 use crate::connection_pool::PgsqlConn;
 use crate::routes::RouteResult;
 use crate::event::{Event, EventPlain, ToPlain};
-use crate::database_helpers::{FromRow, get_cell_from_row};
+use crate::database_helpers::{FromRow, get_cell_from_row, UuidParam};
 use rocket_contrib::json::Json;
 use crate::database_error::{DatabaseErrorKind, DatabaseError};
 use std::ops::Add;
@@ -103,7 +103,7 @@ impl<'v> FromFormValue<'v> for NaiveDateOrTime
 
 
 
-fn get_event_by_id(db: &mut PgsqlConn, calendar_id: i32, event_id: i32) -> Result<Option<Event>, DatabaseError>
+fn get_event_by_id(db: &mut PgsqlConn, calendar_id: UuidParam, event_id: UuidParam) -> Result<Option<Event>, DatabaseError>
 {
     let query = "SELECT * FROM events WHERE calendar_id = $1 AND id = $2";
 
@@ -127,7 +127,7 @@ fn get_event_by_id(db: &mut PgsqlConn, calendar_id: i32, event_id: i32) -> Resul
 
 
 #[get("/calendars/<calendar_id>/events/<event_id>")]
-pub fn get_event(mut db: PgsqlConn, calendar_id: i32, event_id: i32) -> RouteResult<EventPlain>
+pub fn get_event(mut db: PgsqlConn, calendar_id: UuidParam, event_id: UuidParam) -> RouteResult<EventPlain>
 {
     get_event_by_id(&mut db, calendar_id, event_id)
         .map(|opt|
@@ -137,7 +137,7 @@ pub fn get_event(mut db: PgsqlConn, calendar_id: i32, event_id: i32) -> RouteRes
 }
 
 #[post("/calendars/<calendar_id>/events", data = "<event>")]
-pub fn insert_event(mut db: PgsqlConn, calendar_id: i32, event: Json<EventPlain>) -> RouteResult<EventPlain>
+pub fn insert_event(mut db: PgsqlConn, calendar_id: UuidParam, event: Json<EventPlain>) -> RouteResult<EventPlain>
 {
     if !event.validate_non_patch() || event.id.is_some()
     {
@@ -181,7 +181,7 @@ pub fn insert_event(mut db: PgsqlConn, calendar_id: i32, event: Json<EventPlain>
 }
 
 #[put("/calendars/<calendar_id>/events/<event_id>", data = "<event_data>")]
-pub fn update_event(mut db: PgsqlConn, calendar_id: i32, event_id: i32, event_data: Json<EventPlain>) -> RouteResult<()>
+pub fn update_event(mut db: PgsqlConn, calendar_id: UuidParam, event_id: UuidParam, event_data: Json<EventPlain>) -> RouteResult<()>
 {
     let mut query = "UPDATE events SET ".to_owned();
 
@@ -240,8 +240,8 @@ pub fn update_event(mut db: PgsqlConn, calendar_id: i32, event_id: i32, event_da
 #[get("/calendars/<calendar_id>/events/<event_id>/instances?<since>&<until>")]
 pub fn get_instances(
     mut db: PgsqlConn,
-    calendar_id: i32,
-    event_id: i32,
+    calendar_id: UuidParam,
+    event_id: UuidParam,
     since: String,
     until: String,
     common_params: CommonQueryParams,
@@ -274,7 +274,7 @@ pub fn get_instances(
 #[get("/calendars/<calendar_id>/events?<since>&<until>")]
 pub fn list_events(
     mut db: PgsqlConn,
-    calendar_id: i32,
+    calendar_id: UuidParam,
     since: Option<NaiveDateOrTime>,
     until: Option<NaiveDateOrTime>,
     common_params: CommonQueryParams,
@@ -328,7 +328,7 @@ pub fn list_events(
 pub fn check_for_changes(
     mut db: PgsqlConn,
     common_params: CommonQueryParams,
-    calendar_id: i32,
+    calendar_id: UuidParam,
     since: NaiveDateOrTime,
 ) -> RouteResult<Vec<EventPlain>>
 {

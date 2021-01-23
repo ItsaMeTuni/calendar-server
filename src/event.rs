@@ -13,6 +13,7 @@ use crate::recurrence::RecurrenceRule;
 
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
 use serde::de::Error;
+use uuid::Uuid;
 
 
 pub const EVENT_FIELDS: &str = "id, parent_event_id, start_date, start_time, end_date, end_time, rrule, exdates, rdates";
@@ -239,7 +240,7 @@ impl ToPlain<Vec<EventPlain>> for Vec<Event>
 pub struct EventRecurring
 {
     /// Id of this event in the database.
-    id: i32,
+    id: Uuid,
     span: EventSpan,
     recurrence: EventRecurrence,
     last_modified: NaiveDateTime,
@@ -249,7 +250,7 @@ pub struct EventRecurring
 /// its calendarold.
 impl EventRecurring
 {
-    pub fn get_id(&self) -> i32 { self.id }
+    pub fn get_id(&self) -> Uuid { self.id }
 
     pub fn get_span(&self) -> EventSpan { self.span }
 
@@ -369,7 +370,7 @@ impl ToPlain<EventPlain> for EventRecurring
 #[derive(Clone, Debug)]
 pub struct EventSingle
 {
-    id: i32,
+    id: Uuid,
 
     /// If this is Some, it means this event is a single
     /// event that was originated from modifying the date/time
@@ -390,7 +391,7 @@ pub struct EventSingle
     /// 1. The date 2020-09-08 was added to the recurrent event's EXDATES property.
     /// 2. A (non-recurring) event was created at 2020-09-09, with the ID `cde`.
     /// 3. The parent_id of the `cde` event was set to `abc`.
-    parent_id: Option<i32>,
+    parent_id: Option<Uuid>,
     span: EventSpan,
 
     last_modified: NaiveDateTime,
@@ -400,9 +401,9 @@ impl EventSingle
 {
     pub fn get_span(&self) -> EventSpan { self.span }
 
-    pub fn get_id(&self) -> i32 { self.id }
+    pub fn get_id(&self) -> Uuid { self.id }
 
-    pub fn get_parent_id(&self) -> Option<i32> { self.parent_id }
+    pub fn get_parent_id(&self) -> Option<Uuid> { self.parent_id }
 
     fn from_row(row: &Row) -> Result<Self, DatabaseError>
     {
@@ -446,7 +447,7 @@ impl ToPlain<EventPlain> for EventSingle
 #[derive(Clone, Debug)]
 pub struct EventInstance
 {
-    parent_id: i32,
+    parent_id: Uuid,
     span: EventSpan,
 }
 
@@ -454,7 +455,7 @@ impl EventInstance
 {
     pub fn get_span(&self) -> EventSpan { self.span }
 
-    pub fn get_parent_id(&self) -> i32 { self.parent_id }
+    pub fn get_parent_id(&self) -> Uuid { self.parent_id }
 
     fn from_row(row: &Row) -> Result<Self, DatabaseError>
     {
@@ -520,8 +521,8 @@ impl ToPlain<EventPlain> for EventInstance
 #[derive(Serialize, Deserialize, Debug)]
 pub struct EventPlain
 {
-    pub id: Option<i32>,
-    pub parent_id: Option<i32>,
+    pub id: Option<Uuid>,
+    pub parent_id: Option<Uuid>,
 
     #[serde(default)]
     #[serde(with = "event_plain_serde::date_option")]

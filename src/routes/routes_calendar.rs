@@ -1,7 +1,7 @@
 use crate::connection_pool::PgsqlConn;
 use crate::calendar::{Calendar};
 use crate::routes::RouteResult;
-use crate::database_helpers::{FromRow, get_cell_from_row};
+use crate::database_helpers::{FromRow, get_cell_from_row, UuidParam};
 use rocket_contrib::json::Json;
 use crate::database_error::{DatabaseError, DatabaseErrorKind};
 use crate::routes::common_query_params::CommonQueryParams;
@@ -10,7 +10,7 @@ use crate::routes::common_query_params::CommonQueryParams;
 ///
 /// Response codes: 200, 404, 500
 #[get("/calendars/<calendar_id>")]
-pub fn get_calendar(mut db: PgsqlConn, calendar_id: i32) -> RouteResult<Calendar>
+pub fn get_calendar(mut db: PgsqlConn, calendar_id: UuidParam) -> RouteResult<Calendar>
 {
     let query = "SELECT * FROM calendars WHERE id = $1;";
 
@@ -57,7 +57,7 @@ pub fn insert_calendar(mut db: PgsqlConn, calendar: Json<Calendar>) -> RouteResu
 {
     let calendar = calendar.into_inner();
 
-    if calendar.get_id() != -1
+    if !calendar.get_id().is_nil()
     {
         RouteResult::BadRequest(None)
     }

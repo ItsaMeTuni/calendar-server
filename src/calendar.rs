@@ -1,32 +1,32 @@
 use crate::database_helpers::{FromRow, get_cell_from_row};
 use postgres::Row;
 use crate::database_error::DatabaseError;
+use uuid::Uuid;
 
 pub const CALENDAR_FIELDS: &str = "id, tenant_id";
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Calendar
 {
-    /// If this is -1 it means the calendar does not
-    /// exist in the database. Useful when deserializing
-    /// Calendar for create requests.
-    #[serde(default = "Calendar::default_id")]
-    id: i32,
+    /// If this is a nil UUID (it's a thing, look it up)
+    /// it means the calendar does not exist in the database.
+    /// This is useful when deserializing Calendar
+    /// for create requests.
+    #[serde(default = "Uuid::nil")]
+    id: Uuid,
 }
 
 
 impl Calendar
 {
-    pub fn new(id: i32) -> Calendar
+    pub fn new(id: Uuid) -> Calendar
     {
         Calendar {
             id
         }
     }
 
-    pub fn get_id(&self) -> i32 { self.id }
-
-    fn default_id() -> i32 { -1 }
+    pub fn get_id(&self) -> Uuid { self.id }
 }
 
 impl FromRow for Calendar
