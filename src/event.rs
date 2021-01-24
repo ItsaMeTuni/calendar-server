@@ -15,7 +15,7 @@ use serde::{Serialize, Deserialize, Serializer, Deserializer};
 use serde::de::Error;
 use uuid::Uuid;
 use itertools::Itertools;
-use crate::iter_helpers::ChainOrderedTrait;
+use crate::iter_helpers::MergeOrderedTrait;
 
 
 pub const EVENT_FIELDS: &str = "id, parent_event_id, start_date, start_time, end_date, end_time, rrule, exdates, rdates";
@@ -287,7 +287,7 @@ impl EventRecurring
             .filter(|x| from_date.is_none() || *x >= from_date.unwrap())
             .filter(|x| !self.recurrence.exdates.contains(x))
             .take_while(|x| to_date.is_none() || *x <= to_date.unwrap())
-            .chain_ordered(self.recurrence.rdates.clone().into_iter().sorted())
+            .merge_ordered(self.recurrence.rdates.clone().into_iter().sorted())
             .skip(skip)
             .take(max_results)
             .map(|date| {
