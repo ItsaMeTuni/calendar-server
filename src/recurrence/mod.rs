@@ -5,6 +5,7 @@ use chrono::{Date, Utc, NaiveDate, Duration, Datelike, Weekday, Month, IsoWeek, 
 
 use self::helpers::NaiveDateHelpers;
 use std::fmt::{Formatter, Display};
+use crate::event::EventRecurring;
 
 mod recurrence_parser;
 mod helpers;
@@ -136,9 +137,9 @@ impl RecurrenceRule
     /// when FREQ=WEEKLY). You don't really have to worry about this
     /// unless you suspect there might be a bug with the inference
     /// algorithm. If you do, look at `infer_stuff`.
-    pub fn calculate_instances(&self, from: NaiveDate, to: NaiveDate, starting_at: NaiveDate) -> Vec<NaiveDate>
+    pub fn calculate_instances(&self, from: NaiveDate, to: NaiveDate, starting_at: NaiveDate) -> RRuleInstances
     {
-        calculate_recurrence_instances(self.infer_stuff(starting_at), from, to, starting_at)
+        RRuleInstances::new(self.infer_stuff(starting_at), from, to, starting_at)
     }
 
     fn check_by_month(&self, date: &NaiveDate) -> bool
@@ -271,86 +272,111 @@ impl RecurrenceRule
 /// a few years in the past this can quickly become a bottleneck. It works this way because I don't know any other
 /// way to calculate the recurrence dates while taking into account all parameters as defined in RFC 5545. There
 /// might be a better way to do this, but I don't know about it.
-fn calculate_recurrence_instances(rule: RecurrenceRule, from: NaiveDate, to: NaiveDate, starting_at: NaiveDate) -> Vec<NaiveDate>
+pub struct RRuleInstances
 {
-    let mut results = vec![];
+    rule: RecurrenceRule,
+    from: NaiveDate,
+    to: NaiveDate,
+    starting_at: NaiveDate,
+    instance_count: u32,
+    last_instance_date: NaiveDate,
+    current_date: NaiveDate,
+}
 
-    // Use a separate variable to count for instances
-    // because there might exist instances that won't
-    // be added to results.
-    let mut instance_count = 0;
-
-    let mut last_instance_date = starting_at;
-
-    let mut current_date = starting_at.clone();
-    loop
+impl RRuleInstances
+{
+    pub fn new(rule: RecurrenceRule, from: NaiveDate, to: NaiveDate, starting_at: NaiveDate) -> RRuleInstances
     {
-        // Order matters here! This should be in the same order
-        // as specified in RFC 5545
-        let fits_into_rule =
-            rule.check_by_month(&current_date)
-                && rule.check_by_week_no(&current_date)
-                && rule.check_by_year_day(&current_date)
-                && rule.check_by_month_day(&current_date)
-                && rule.check_by_day(&current_date)
-                && rule.check_by_set_pos(&current_date);
-
-        match rule.limit
-        {
-            RecurrenceLimit::Indefinite => {},
-            RecurrenceLimit::Date(date) =>
-                if current_date > date
-                {
-                    break;
-                },
-            RecurrenceLimit::Count(count) =>
-                if instance_count >= count
-                {
-                    break;
-                },
-        };
-
-        if current_date > to
-        {
-            break;
+        RRuleInstances {
+            rule,
+            from,
+            to,
+            starting_at,
+            instance_count: 0,
+            last_instance_date: starting_at,
+            current_date: starting_at,
         }
-        else if fits_into_rule
+    }
+}
+
+impl Iterator for RRuleInstances
+{
+    type Item = NaiveDate;
+
+    fn next(&mut self) -> Option<Self::Item>
+    {
+        loop
         {
-            let freq_diff = match rule.frequency
+            let mut is_match = false;
+
+            // Order matters here! This should be in the same order
+            // as specified in RFC 5545
+            let fits_into_rule =
+                self.rule.check_by_month(&self.current_date)
+                    && self.rule.check_by_week_no(&self.current_date)
+                    && self.rule.check_by_year_day(&self.current_date)
+                    && self.rule.check_by_month_day(&self.current_date)
+                    && self.rule.check_by_day(&self.current_date)
+                    && self.rule.check_by_set_pos(&self.current_date);
+
+            match self.rule.limit
             {
-                RecurrenceFreq::Daily => (current_date - last_instance_date).num_days(),
-                RecurrenceFreq::Weekly => calc_uniq_weeks_between(current_date, last_instance_date),
-                RecurrenceFreq::Monthly => {
-                    if last_instance_date.month() > current_date.month()
+                RecurrenceLimit::Indefinite => {},
+                RecurrenceLimit::Date(date) =>
+                    if self.current_date > date
                     {
-                        (current_date.month() + 12 - last_instance_date.month()) as i64
-                    }
-                    else
+                        break;
+                    },
+                RecurrenceLimit::Count(count) =>
+                    if self.instance_count >= count
                     {
-                        (current_date.month() - last_instance_date.month()) as i64
-                    }
-                },
-                RecurrenceFreq::Yearly => (current_date.year() - last_instance_date.year()) as i64,
+                        break;
+                    },
             };
 
-            if freq_diff >= rule.interval as i64 || freq_diff == 0
+            if self.current_date > self.to
             {
-                instance_count += 1;
-
-                if current_date >= from
+                break;
+            }
+            else if fits_into_rule
+            {
+                let freq_diff = match self.rule.frequency
                 {
-                    results.push(current_date);
-                }
+                    RecurrenceFreq::Daily => (self.current_date - self.last_instance_date).num_days(),
+                    RecurrenceFreq::Weekly => calc_uniq_weeks_between(self.current_date, self.last_instance_date),
+                    RecurrenceFreq::Monthly => {
+                        if self.last_instance_date.month() > self.current_date.month()
+                        {
+                            (self.current_date.month() + 12 - self.last_instance_date.month()) as i64
+                        }
+                        else
+                        {
+                            (self.current_date.month() - self.last_instance_date.month()) as i64
+                        }
+                    },
+                    RecurrenceFreq::Yearly => (self.current_date.year() - self.last_instance_date.year()) as i64,
+                };
 
-                last_instance_date = current_date;
+                if freq_diff >= self.rule.interval as i64 || freq_diff == 0
+                {
+                    self.instance_count += 1;
+
+                    self.last_instance_date = self.current_date;
+
+                    is_match = self.current_date >= self.from;
+                }
+            }
+
+            self.current_date += Duration::days(self.rule.interval as i64);
+
+            if is_match
+            {
+                return Some(self.last_instance_date);
             }
         }
 
-
-        current_date += Duration::days(rule.interval as i64);
+        None
     }
-
-    results
 }
 
 /// Calculates how many different weeks there are between
@@ -472,6 +498,7 @@ impl Display for RecurrenceFreq
 mod tests
 {
     use super::*;
+    use itertools::Itertools;
 
     #[test]
     fn calc_recurrences_weekly_indefinite()
@@ -489,7 +516,7 @@ mod tests
             start_date,
             NaiveDate::from_ymd(2020, 2, 1),
             NaiveDate::from_ymd(2020, 1, 1)
-        );
+        ).collect_vec();
 
         let expected = [
             NaiveDate::from_ymd(2020, 1, 1),
@@ -518,7 +545,7 @@ mod tests
             start_date,
             NaiveDate::from_ymd(2020, 2, 1),
             NaiveDate::from_ymd(2020, 1, 1)
-        );
+        ).collect_vec();
 
         let expected = [
             NaiveDate::from_ymd(2020, 1, 1),
@@ -545,7 +572,7 @@ mod tests
             start_date,
             NaiveDate::from_ymd(2020, 2, 1),
             NaiveDate::from_ymd(2020, 1, 1)
-        );
+        ).collect_vec();
 
         let expected = [
             NaiveDate::from_ymd(2020, 1, 1),
@@ -573,7 +600,7 @@ mod tests
             start_date,
             NaiveDate::from_ymd(2020, 2, 1),
             NaiveDate::from_ymd(2020, 1, 1)
-        );
+        ).collect_vec();
 
         let expected = [
             NaiveDate::from_ymd(2020, 1, 1),

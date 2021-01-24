@@ -14,6 +14,7 @@ use crate::recurrence::RecurrenceRule;
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
 use serde::de::Error;
 use uuid::Uuid;
+use itertools::Itertools;
 
 
 pub const EVENT_FIELDS: &str = "id, parent_event_id, start_date, start_time, end_date, end_time, rrule, exdates, rdates";
@@ -278,28 +279,26 @@ impl EventRecurring
     /// Does **NOT** get child events! Use `get_children` for that!
     pub fn generate_instances(&self, from_date: NaiveDate, to_date: NaiveDate) -> Result<Vec<EventInstance>, DatabaseError>
     {
-        let mut instances = self.recurrence.rule.calculate_instances(from_date, to_date, self.span.get_date_span().start);
-
-        instances.append(&mut self.recurrence.rdates.clone());
-
         let duration = self.span.get_duration();
 
-        Ok(
-            instances
-                .iter()
-                .filter(|x| !self.recurrence.exdates.contains(*x))
-                .map(|date| {
-                    EventInstance {
-                        parent_id: self.id,
-                        span: match self.span
-                        {
-                            EventSpan::Date(_date_span) => EventSpan::from_date_and_duration(*date, duration),
-                            EventSpan::DateTime(datetime_span) => EventSpan::from_date_time_and_duration(date.and_time(datetime_span.start.time()), duration),
-                        },
-                    }
-                })
-                .collect()
-        )
+        let mut instances: Vec<EventInstance> = self.recurrence.rule
+            .calculate_instances(from_date, to_date, self.span.get_date_span().start)
+            .filter(|x| !self.recurrence.exdates.contains(x))
+            .merge(self.recurrence.rdates.clone().into_iter())
+            .sorted()
+            .map(|date| {
+                EventInstance {
+                    parent_id: self.id,
+                    span: match self.span
+                    {
+                        EventSpan::Date(_date_span) => EventSpan::from_date_and_duration(date, duration),
+                        EventSpan::DateTime(datetime_span) => EventSpan::from_date_time_and_duration(date.and_time(datetime_span.start.time()), duration),
+                    },
+                }
+            })
+            .collect();
+
+        Ok(instances)
     }
 
     fn from_row(row: &Row) -> Result<Self, DatabaseError>
