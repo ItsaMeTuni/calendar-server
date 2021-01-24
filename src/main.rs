@@ -11,6 +11,7 @@ mod event;
 mod recurrence;
 mod configs;
 mod env_helpers;
+mod iter_helpers;
 
 extern crate dotenv;
 #[macro_use] extern crate thiserror;

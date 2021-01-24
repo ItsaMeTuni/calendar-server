@@ -7,7 +7,7 @@ use crate::database_error::{DatabaseErrorKind, DatabaseError};
 use std::ops::Add;
 use crate::configs::Configs;
 use rocket::State;
-use rocket::request::FromFormValue;
+use rocket::request::{FromFormValue, FromParam};
 use rocket::http::RawStr;
 use chrono::{NaiveDateTime, NaiveDate, NaiveTime};
 use std::ops::{Deref, DerefMut};
@@ -98,7 +98,24 @@ impl<'v> FromFormValue<'v> for NaiveDateOrTime
     }
 }
 
+pub struct NaiveDateParam(NaiveDate);
+impl NaiveDateParam
+{
+    pub fn into_inner(self) -> NaiveDate
+    {
+        self.0
+    }
+}
 
+impl<'v> FromFormValue<'v> for NaiveDateParam
+{
+    type Error = chrono::ParseError;
+
+    fn from_form_value(param: &'v RawStr) -> Result<Self, Self::Error> {
+        NaiveDate::from_str(param.as_str())
+            .map(|x| NaiveDateParam(x))
+    }
+}
 
 
 
@@ -242,8 +259,8 @@ pub fn get_instances(
     mut db: PgsqlConn,
     calendar_id: UuidParam,
     event_id: UuidParam,
-    since: String,
-    until: String,
+    since: Option<NaiveDateParam>,
+    until: Option<NaiveDateParam>,
     common_params: CommonQueryParams,
 ) -> RouteResult<Vec<EventPlain>>
 {
@@ -254,10 +271,13 @@ pub fn get_instances(
             Event::Recurring(event) => RouteResult::Ok(
 
                 event
-                    .generate_instances(NaiveDate::from_str(&since)?, NaiveDate::from_str(&until)?)?
+                    .generate_instances(
+                        since.map(|x| x.into_inner()),
+                        until.map(|x| x.into_inner()),
+                        common_params.offset() as usize,
+                        common_params.page_size() as usize
+                    )?
                     .into_iter()
-                    .skip(common_params.offset() as usize) //skip offset
-                    .take(common_params.page_size() as usize) //limit to page size
                     .map(|e| e.into_plain())
                     .collect()
 

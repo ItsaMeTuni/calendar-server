@@ -15,6 +15,7 @@ use serde::{Serialize, Deserialize, Serializer, Deserializer};
 use serde::de::Error;
 use uuid::Uuid;
 use itertools::Itertools;
+use crate::iter_helpers::ChainOrderedTrait;
 
 
 pub const EVENT_FIELDS: &str = "id, parent_event_id, start_date, start_time, end_date, end_time, rrule, exdates, rdates";
@@ -277,15 +278,18 @@ impl EventRecurring
     /// based on this event's rrule, exdates, rdates.
     ///
     /// Does **NOT** get child events! Use `get_children` for that!
-    pub fn generate_instances(&self, from_date: NaiveDate, to_date: NaiveDate) -> Result<Vec<EventInstance>, DatabaseError>
+    pub fn generate_instances(&self, from_date: Option<NaiveDate>, to_date: Option<NaiveDate>, skip: usize, max_results: usize) -> Result<Vec<EventInstance>, DatabaseError>
     {
         let duration = self.span.get_duration();
 
-        let mut instances: Vec<EventInstance> = self.recurrence.rule
-            .calculate_instances(from_date, to_date, self.span.get_date_span().start)
+        let mut instances = self.recurrence.rule
+            .calculate_instances(self.span.get_date_span().start)
+            .filter(|x| from_date.is_none() || *x >= from_date.unwrap())
             .filter(|x| !self.recurrence.exdates.contains(x))
-            .merge(self.recurrence.rdates.clone().into_iter())
-            .sorted()
+            .take_while(|x| to_date.is_none() || *x <= to_date.unwrap())
+            .chain_ordered(self.recurrence.rdates.clone().into_iter().sorted())
+            .skip(skip)
+            .take(max_results)
             .map(|date| {
                 EventInstance {
                     parent_id: self.id,
@@ -296,7 +300,7 @@ impl EventRecurring
                     },
                 }
             })
-            .collect();
+            .collect_vec();
 
         Ok(instances)
     }
@@ -541,6 +545,7 @@ pub struct EventPlain
 
     pub recurrence: Option<RecurrencePlain>,
 
+    #[serde(default)]
     #[serde(with = "event_plain_serde::date_time_option")]
     pub last_modified: Option<NaiveDateTime>,
 }

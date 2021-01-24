@@ -137,9 +137,9 @@ impl RecurrenceRule
     /// when FREQ=WEEKLY). You don't really have to worry about this
     /// unless you suspect there might be a bug with the inference
     /// algorithm. If you do, look at `infer_stuff`.
-    pub fn calculate_instances(&self, from: NaiveDate, to: NaiveDate, starting_at: NaiveDate) -> RRuleInstances
+    pub fn calculate_instances(&self, starting_at: NaiveDate) -> RRuleInstances
     {
-        RRuleInstances::new(self.infer_stuff(starting_at), from, to, starting_at)
+        RRuleInstances::new(self.infer_stuff(starting_at), starting_at)
     }
 
     fn check_by_month(&self, date: &NaiveDate) -> bool
@@ -275,8 +275,6 @@ impl RecurrenceRule
 pub struct RRuleInstances
 {
     rule: RecurrenceRule,
-    from: NaiveDate,
-    to: NaiveDate,
     starting_at: NaiveDate,
     instance_count: u32,
     last_instance_date: NaiveDate,
@@ -285,12 +283,10 @@ pub struct RRuleInstances
 
 impl RRuleInstances
 {
-    pub fn new(rule: RecurrenceRule, from: NaiveDate, to: NaiveDate, starting_at: NaiveDate) -> RRuleInstances
+    pub fn new(rule: RecurrenceRule, starting_at: NaiveDate) -> RRuleInstances
     {
         RRuleInstances {
             rule,
-            from,
-            to,
             starting_at,
             instance_count: 0,
             last_instance_date: starting_at,
@@ -334,11 +330,7 @@ impl Iterator for RRuleInstances
                     },
             };
 
-            if self.current_date > self.to
-            {
-                break;
-            }
-            else if fits_into_rule
+            if fits_into_rule
             {
                 let freq_diff = match self.rule.frequency
                 {
@@ -363,7 +355,7 @@ impl Iterator for RRuleInstances
 
                     self.last_instance_date = self.current_date;
 
-                    is_match = self.current_date >= self.from;
+                    is_match = true;
                 }
             }
 
@@ -500,6 +492,14 @@ mod tests
     use super::*;
     use itertools::Itertools;
 
+    fn instances_between(rule: RecurrenceRule, starting_at: NaiveDate, from: NaiveDate, to: NaiveDate) -> Vec<NaiveDate>
+    {
+        rule.calculate_instances(starting_at)
+            .filter(|x| *x >= from)
+            .take_while(|x| *x <= to)
+            .collect_vec()
+    }
+
     #[test]
     fn calc_recurrences_weekly_indefinite()
     {
@@ -512,11 +512,12 @@ mod tests
             ..RecurrenceRule::default()
         };
 
-        let result = rule.calculate_instances(
+        let result = instances_between(
+            rule,
             start_date,
             NaiveDate::from_ymd(2020, 2, 1),
             NaiveDate::from_ymd(2020, 1, 1)
-        ).collect_vec();
+        );
 
         let expected = [
             NaiveDate::from_ymd(2020, 1, 1),
@@ -541,11 +542,12 @@ mod tests
             ..RecurrenceRule::default()
         };
 
-        let result = rule.calculate_instances(
+        let result = instances_between(
+            rule,
             start_date,
             NaiveDate::from_ymd(2020, 2, 1),
             NaiveDate::from_ymd(2020, 1, 1)
-        ).collect_vec();
+        );
 
         let expected = [
             NaiveDate::from_ymd(2020, 1, 1),
@@ -568,11 +570,12 @@ mod tests
             ..RecurrenceRule::default()
         };
 
-        let result = rule.calculate_instances(
+        let result = instances_between(
+            rule,
             start_date,
             NaiveDate::from_ymd(2020, 2, 1),
             NaiveDate::from_ymd(2020, 1, 1)
-        ).collect_vec();
+        );
 
         let expected = [
             NaiveDate::from_ymd(2020, 1, 1),
@@ -596,11 +599,12 @@ mod tests
             ..RecurrenceRule::default()
         };
 
-        let result = rule.calculate_instances(
+        let result = instances_between(
+            rule,
             start_date,
             NaiveDate::from_ymd(2020, 2, 1),
             NaiveDate::from_ymd(2020, 1, 1)
-        ).collect_vec();
+        );
 
         let expected = [
             NaiveDate::from_ymd(2020, 1, 1),
