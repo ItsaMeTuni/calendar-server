@@ -8,7 +8,6 @@ use serde::Serialize;
 use std::ops::{Deref, Try};
 use std::io::Cursor;
 use std::fmt::Debug;
-use serde::export::Formatter;
 use rocket::http::hyper::header::Location;
 use std::any::Any;
 
@@ -183,7 +182,7 @@ impl<T> Try for RouteResult<T>
             RouteResult::Ok(x) => Ok(Some(x)),
             RouteResult::Created(payload, _) => Ok(Some(payload)),
             RouteResult::NotFound => Err(Box::new(NotFoundError)),
-            RouteResult::BadRequest(x) => Err(Box::new(BadRequestError)),
+            RouteResult::BadRequest(_x) => Err(Box::new(BadRequestError)),
             RouteResult::Forbidden => Err(Box::new(ForbiddenError)),
             RouteResult::InternalError(x) => Err(x),
         }

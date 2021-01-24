@@ -5,15 +5,12 @@ use crate::database_helpers::{FromRow, get_cell_from_row, UuidParam};
 use rocket_contrib::json::Json;
 use crate::database_error::{DatabaseErrorKind, DatabaseError};
 use std::ops::Add;
-use crate::configs::Configs;
-use rocket::State;
-use rocket::request::{FromFormValue, FromParam};
+use rocket::request::{FromFormValue};
 use rocket::http::RawStr;
 use chrono::{NaiveDateTime, NaiveDate, NaiveTime};
-use std::ops::{Deref, DerefMut};
-use postgres::types::{ToSql, Type, IsNull};
-use postgres::types::private::BytesMut;
-use std::error::Error;
+use postgres::types::{ToSql};
+
+
 use std::fmt::Debug;
 use std::str::FromStr;
 use crate::routes::common_query_params::CommonQueryParams;
@@ -236,8 +233,8 @@ pub fn update_event(mut db: PgsqlConn, calendar_id: UuidParam, event_id: UuidPar
         )
         .collect();
 
-    /// Remove the last comma ',' from the query. Panic if
-    /// the character removed was not a comma.
+    // Remove the last comma ',' from the query. Panic if
+    // the character removed was not a comma.
     assert_eq!(query.remove(query.len() - 1), ',');
 
     query = query.add(" WHERE calendar_id = $1 AND id = $2 RETURNING *;");

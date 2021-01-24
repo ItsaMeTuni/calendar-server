@@ -11,8 +11,8 @@ use chrono::{Date, DateTime, TimeZone, NaiveDate, NaiveDateTime, Utc, NaiveTime,
 use crate::recurrence::RecurrenceRule;
 
 
-use serde::{Serialize, Deserialize, Serializer, Deserializer};
-use serde::de::Error;
+use serde::{Serialize, Deserialize};
+
 use uuid::Uuid;
 use itertools::Itertools;
 use crate::iter_helpers::MergeOrderedTrait;
@@ -282,7 +282,7 @@ impl EventRecurring
     {
         let duration = self.span.get_duration();
 
-        let mut instances = self.recurrence.rule
+        let instances = self.recurrence.rule
             .calculate_instances(self.span.get_date_span().start)
             .filter(|x| from_date.is_none() || *x >= from_date.unwrap())
             .filter(|x| !self.recurrence.exdates.contains(x))
@@ -633,7 +633,7 @@ mod event_plain_serde
         use serde::{self, Deserialize, Serializer, Deserializer};
         
         use super::DATE_FORMAT;
-        use serde::de::Error;
+        
 
         pub fn serialize<S>(date: &Option<NaiveDate>, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -668,7 +668,7 @@ mod event_plain_serde
         
         use serde::ser::SerializeSeq;
         use super::DATE_FORMAT;
-        use serde::de::Error;
+        
 
         pub fn serialize<S>(dates: &Option<Vec<NaiveDate>>, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -744,7 +744,7 @@ mod event_plain_serde
 
     pub mod date_time_option
     {
-        use chrono::{NaiveTime, NaiveDateTime};
+        use chrono::{NaiveDateTime};
         use serde::{self, Deserialize, Serializer, Deserializer};
 
         use super::DATE_TIME_FORMAT;

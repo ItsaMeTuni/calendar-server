@@ -1,4 +1,4 @@
-use rocket::request::{FromRequest, Outcome, Request, State};
+
 use crate::env_helpers::get_env_default;
 
 /// Stores the server's configuration variables.

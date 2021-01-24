@@ -1,12 +1,12 @@
 use rocket::{Request, request::Outcome, State};
-use crate::database_error::DatabaseError;
+
 use rocket::request::FromRequest;
-use postgres::types::ToSql;
-use postgres::Row;
+
+
 use crate::configs::Configs;
-use std::ops::Try;
-use rocket::outcome::Outcome::Failure;
-use rocket::http::Status;
+
+
+
 
 /// Common query parameters most routes support, like
 /// the `offset` and `limit`

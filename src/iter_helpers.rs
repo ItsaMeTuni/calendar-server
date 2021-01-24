@@ -44,8 +44,8 @@ impl<A, B> Iterator for MergeOrdered<A, B>
             // Get first elements in the first iteration.
             if self.first_run
             {
-                replace((&mut self.cache_a as *mut _), self.a.next());
-                replace((&mut self.cache_b as *mut _), self.b.next());
+                replace(&mut self.cache_a as *mut _, self.a.next());
+                replace(&mut self.cache_b as *mut _, self.b.next());
                 self.first_run = false;
             }
 
@@ -60,20 +60,20 @@ impl<A, B> Iterator for MergeOrdered<A, B>
             match cache_ref_a
             {
                 None => {
-                    return replace((&mut self.cache_b as *mut _), self.b.next());
+                    return replace(&mut self.cache_b as *mut _, self.b.next());
                 },
                 Some(a) => match cache_ref_b {
                     None => {
-                        return replace((&mut self.cache_a as *mut _), self.a.next());
+                        return replace(&mut self.cache_a as *mut _, self.a.next());
                     },
                     Some(b) => {
                         if a <= b
                         {
-                            return replace((&mut self.cache_a as *mut _), self.a.next());
+                            return replace(&mut self.cache_a as *mut _, self.a.next());
                         }
                         else
                         {
-                            return replace((&mut self.cache_b as *mut _), self.b.next());
+                            return replace(&mut self.cache_b as *mut _, self.b.next());
                         }
                     },
                 },

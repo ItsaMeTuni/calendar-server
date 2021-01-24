@@ -5,7 +5,7 @@ use chrono::{Date, Utc, NaiveDate, Duration, Datelike, Weekday, Month, IsoWeek, 
 
 use self::helpers::NaiveDateHelpers;
 use std::fmt::{Formatter, Display};
-use crate::event::EventRecurring;
+
 
 mod recurrence_parser;
 mod helpers;

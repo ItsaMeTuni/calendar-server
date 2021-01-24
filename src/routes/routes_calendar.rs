@@ -1,7 +1,7 @@
 use crate::connection_pool::PgsqlConn;
 use crate::calendar::{Calendar};
 use crate::routes::RouteResult;
-use crate::database_helpers::{FromRow, get_cell_from_row, UuidParam};
+use crate::database_helpers::{FromRow, UuidParam};
 use rocket_contrib::json::Json;
 use crate::database_error::{DatabaseError, DatabaseErrorKind};
 use crate::routes::common_query_params::CommonQueryParams;
