@@ -1,6 +1,7 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 #![feature(try_trait)]
 #![feature(backtrace)]
+#![allow(dead_code)]
 
 mod connection_pool;
 mod database_error;

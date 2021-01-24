@@ -7,7 +7,7 @@ use crate::connection_pool::PgsqlConn;
 use crate::database_error::{DatabaseError, DatabaseErrorKind};
 use postgres::Row;
 use crate::database_helpers::{get_cell_from_row, get_cell_from_row_with_default, FromRow};
-use chrono::{Date, DateTime, TimeZone, NaiveDate, NaiveDateTime, Utc, NaiveTime, Duration};
+use chrono::{NaiveDate, NaiveDateTime, NaiveTime, Duration};
 use crate::recurrence::RecurrenceRule;
 
 
@@ -682,7 +682,7 @@ mod event_plain_serde
 
                     for date in dates
                     {
-                        seq.serialize_element(&format!("{}", date.format(DATE_FORMAT)));
+                        seq.serialize_element(&format!("{}", date.format(DATE_FORMAT)))?;
                     }
 
                     seq.end()

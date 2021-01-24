@@ -304,10 +304,10 @@ pub fn list_events(
         return RouteResult::BadRequest(None);
     }
 
-    /// A query parameter can only have one type and we want to be able to
-    /// use `since` and `until` as either a date or a date-time, so we have
-    /// a pair of parameters for each variable, one for each type. If, for example,
-    /// `since` is a date, `$2` will be `NULL`.
+    // A query parameter can only have one type and we want to be able to
+    // use `since` and `until` as either a date or a date-time, so we have
+    // a pair of parameters for each variable, one for each type. If, for example,
+    // `since` is a date, `$2` will be `NULL`.
     let query = "
         SELECT * FROM events
         WHERE

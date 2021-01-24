@@ -1,7 +1,7 @@
 //! This module does everything related to event recurrences, from RRULE parsing
 //! to calculating recurring event instances.
 
-use chrono::{Date, Utc, NaiveDate, Duration, Datelike, Weekday, Month, IsoWeek, ParseError};
+use chrono::{NaiveDate, Duration, Datelike, Weekday, Month};
 
 use self::helpers::NaiveDateHelpers;
 use std::fmt::{Formatter, Display};
@@ -275,7 +275,6 @@ impl RecurrenceRule
 pub struct RRuleInstances
 {
     rule: RecurrenceRule,
-    starting_at: NaiveDate,
     instance_count: u32,
     last_instance_date: NaiveDate,
     current_date: NaiveDate,
@@ -287,7 +286,6 @@ impl RRuleInstances
     {
         RRuleInstances {
             rule,
-            starting_at,
             instance_count: 0,
             last_instance_date: starting_at,
             current_date: starting_at,
@@ -379,13 +377,7 @@ impl Iterator for RRuleInstances
 /// this function will return 4.
 fn calc_uniq_weeks_between(a: NaiveDate, b: NaiveDate) -> i64
 {
-    let mut count = 0;
-
     let days_until_monday = a.iter_days().take_while(|x| x.weekday() != Weekday::Mon).count();
-    if days_until_monday > 0
-    {
-        count += 1;
-    }
 
     let monday_date = a.iter_days().skip(days_until_monday).next().unwrap();
 
