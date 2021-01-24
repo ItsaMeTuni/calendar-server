@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 pub const CALENDAR_FIELDS: &str = "id, tenant_id";
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 pub struct Calendar
 {
     /// If this is a nil UUID (it's a thing, look it up)

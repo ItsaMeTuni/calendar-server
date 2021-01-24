@@ -521,48 +521,48 @@ impl ToPlain<EventPlain> for EventInstance
 /// and you won't have any of the convenience functions the
 /// other event structs provide. **Only modify fields directly
 /// if you know what you're doing.**
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
 pub struct EventPlain
 {
     pub id: Option<Uuid>,
     pub parent_id: Option<Uuid>,
 
-    #[serde(default)]
-    #[serde(with = "event_plain_serde::date_option")]
+    #[serde(default, with = "event_plain_serde::date_option")]
+    #[schemars(with = "Option<NaiveDate>")]
     pub start_date: Option<NaiveDate>,
 
-    #[serde(default)]
-    #[serde(with = "event_plain_serde::time_option")]
+    #[serde(default, with = "event_plain_serde::time_option")]
+    #[schemars(with = "Option<NaiveTime>")]
     pub start_time: Option<NaiveTime>,
 
-    #[serde(default)]
-    #[serde(with = "event_plain_serde::date_option")]
+    #[serde(default, with = "event_plain_serde::date_option")]
+    #[schemars(with = "Option<NaiveDate>")]
     pub end_date: Option<NaiveDate>,
 
-    #[serde(default)]
-    #[serde(with = "event_plain_serde::time_option")]
+    #[serde(default, with = "event_plain_serde::time_option")]
+    #[schemars(with = "Option<NaiveTime>")]
     pub end_time: Option<NaiveTime>,
 
     pub recurrence: Option<RecurrencePlain>,
 
-    #[serde(default)]
-    #[serde(with = "event_plain_serde::date_time_option")]
+    #[serde(default, with = "event_plain_serde::date_time_option")]
+    #[schemars(with = "Option<NaiveDateTime>")]
     pub last_modified: Option<NaiveDateTime>,
 }
 
 
 /// Should only be used in conjunction with EventPlain.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, JsonSchema)]
 pub struct RecurrencePlain
 {
     pub rrule: Option<String>,
 
-    #[serde(default)]
-    #[serde(with = "event_plain_serde::date_vec_option")]
+    #[serde(default, with = "event_plain_serde::date_vec_option")]
+    #[schemars(with = "Option<Vec<NaiveDate>>")]
     pub exdates: Option<Vec<NaiveDate>>,
 
-    #[serde(default)]
-    #[serde(with = "event_plain_serde::date_vec_option")]
+    #[serde(default, with = "event_plain_serde::date_vec_option")]
+    #[schemars(with = "Option<Vec<NaiveDate>>")]
     pub rdates: Option<Vec<NaiveDate>>
 }
 

@@ -14,6 +14,9 @@ use postgres::types::{ToSql};
 use std::fmt::Debug;
 use std::str::FromStr;
 use crate::routes::common_query_params::CommonQueryParams;
+use rocket_okapi::request::OpenApiFromFormValue;
+use rocket_okapi::gen::OpenApiGenerator;
+use okapi::openapi3::{Parameter, ParameterValue};
 
 
 /// Store a NaiveDate, NaiveTime or NaiveDateTime without knowing
@@ -23,7 +26,7 @@ use crate::routes::common_query_params::CommonQueryParams;
 /// ToSql is purposefully not implemented for this type, since query parameters
 /// can only have one type and NaiveDateOrTime can map to three different
 /// SQL types (TIMESTAMP, DATE, and TIME).
-#[derive(Debug)]
+#[derive(Debug, JsonSchema)]
 pub enum NaiveDateOrTime
 {
     Date(NaiveDate),
@@ -95,6 +98,30 @@ impl<'v> FromFormValue<'v> for NaiveDateOrTime
     }
 }
 
+impl OpenApiFromFormValue<'_> for NaiveDateOrTime
+{
+    fn query_parameter(gen: &mut OpenApiGenerator, name: String, required: bool) -> rocket_okapi::Result<Parameter> {
+        let schema = gen.json_schema::<NaiveDateOrTime>();
+        Ok(Parameter {
+            name,
+            location: "query".to_owned(),
+            description: None,
+            required,
+            deprecated: false,
+            allow_empty_value: false,
+            value: ParameterValue::Schema {
+                style: None,
+                explode: None,
+                allow_reserved: false,
+                schema,
+                example: None,
+                examples: None,
+            },
+            extensions: Default::default(),
+        })
+    }
+}
+
 pub struct NaiveDateParam(NaiveDate);
 impl NaiveDateParam
 {
@@ -114,6 +141,29 @@ impl<'v> FromFormValue<'v> for NaiveDateParam
     }
 }
 
+impl OpenApiFromFormValue<'_> for NaiveDateParam
+{
+    fn query_parameter(gen: &mut OpenApiGenerator, name: String, required: bool) -> rocket_okapi::Result<Parameter> {
+        let schema = gen.json_schema::<NaiveDate>();
+        Ok(Parameter {
+            name,
+            location: "query".to_owned(),
+            description: None,
+            required,
+            deprecated: false,
+            allow_empty_value: false,
+            value: ParameterValue::Schema {
+                style: None,
+                explode: None,
+                allow_reserved: false,
+                schema,
+                example: None,
+                examples: None,
+            },
+            extensions: Default::default(),
+        })
+    }
+}
 
 
 
@@ -138,8 +188,7 @@ fn get_event_by_id(db: &mut PgsqlConn, calendar_id: UuidParam, event_id: UuidPar
 
 
 
-
-
+#[openapi]
 #[get("/calendars/<calendar_id>/events/<event_id>")]
 pub fn get_event(mut db: PgsqlConn, calendar_id: UuidParam, event_id: UuidParam) -> RouteResult<EventPlain>
 {
@@ -150,6 +199,7 @@ pub fn get_event(mut db: PgsqlConn, calendar_id: UuidParam, event_id: UuidParam)
         .into()
 }
 
+#[openapi]
 #[post("/calendars/<calendar_id>/events", data = "<event>")]
 pub fn insert_event(mut db: PgsqlConn, calendar_id: UuidParam, event: Json<EventPlain>) -> RouteResult<EventPlain>
 {
@@ -194,6 +244,7 @@ pub fn insert_event(mut db: PgsqlConn, calendar_id: UuidParam, event: Json<Event
     }
 }
 
+#[openapi]
 #[put("/calendars/<calendar_id>/events/<event_id>", data = "<event_data>")]
 pub fn update_event(mut db: PgsqlConn, calendar_id: UuidParam, event_id: UuidParam, event_data: Json<EventPlain>) -> RouteResult<()>
 {
@@ -251,6 +302,7 @@ pub fn update_event(mut db: PgsqlConn, calendar_id: UuidParam, event_id: UuidPar
     RouteResult::Ok(())
 }
 
+#[openapi]
 #[get("/calendars/<calendar_id>/events/<event_id>/instances?<since>&<until>")]
 pub fn get_instances(
     mut db: PgsqlConn,
@@ -288,6 +340,7 @@ pub fn get_instances(
     }
 }
 
+#[openapi]
 #[get("/calendars/<calendar_id>/events?<since>&<until>")]
 pub fn list_events(
     mut db: PgsqlConn,
@@ -341,6 +394,7 @@ pub fn list_events(
     )
 }
 
+#[openapi]
 #[get("/calendars/<calendar_id>/events/changes?<since>")]
 pub fn check_for_changes(
     mut db: PgsqlConn,

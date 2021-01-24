@@ -10,17 +10,22 @@ use std::io::Cursor;
 use std::fmt::Debug;
 use rocket::http::hyper::header::Location;
 use std::any::Any;
+use rocket_okapi::response::OpenApiResponder;
+use rocket_okapi::gen::OpenApiGenerator;
+use okapi::openapi3::Responses;
+use rocket_okapi::util::{add_schema_response, produce_any_responses};
+use schemars::JsonSchema;
+use rocket_okapi::routes_with_openapi;
 
 mod routes_calendar;
 mod routes_event;
 mod common_query_params;
 
-
 /// All project routes go in here, main.rs
 /// uses this method to get all routes.
 pub fn get_routes() -> Vec<Route>
 {
-    routes![
+    routes_with_openapi![
         routes_calendar::get_calendar,
         routes_calendar::insert_calendar,
         routes_calendar::list_calendars,
@@ -146,6 +151,24 @@ impl<'r, T: Serialize + Debug + 'static> Responder<'r> for RouteResult<T>
     }
 }
 
+impl<T: Serialize + Debug + JsonSchema + 'static> OpenApiResponder<'_> for RouteResult<T>
+{
+    fn responses(gen: &mut OpenApiGenerator) -> rocket_okapi::Result<Responses> {
+        let mut success_responses = Responses::default();
+        let success_schema = gen.json_schema::<T>();
+        add_schema_response(&mut success_responses, 200, "application/json", success_schema.clone())?;
+        add_schema_response(&mut success_responses, 201, "application/json", success_schema)?;
+
+        let mut err_responses = Responses::default();
+        let empty_schema = gen.json_schema::<()>();
+        add_schema_response(&mut err_responses, 404, "", empty_schema.clone())?;
+        add_schema_response(&mut err_responses, 401, "", empty_schema.clone())?;
+        add_schema_response(&mut err_responses, 400, "", empty_schema.clone())?;
+        add_schema_response(&mut err_responses, 500, "", empty_schema)?;
+
+        produce_any_responses(success_responses, err_responses)
+    }
+}
 
 
 /// Error to be used in RouteResult::into_result, nowhere else.

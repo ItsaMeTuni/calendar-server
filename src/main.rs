@@ -18,11 +18,13 @@ extern crate dotenv;
 #[macro_use] extern crate thiserror;
 #[macro_use] extern crate rocket;
 #[macro_use] extern crate serde;
+#[macro_use] extern crate rocket_okapi;
 
 use crate::connection_pool::PgsqlPool;
 use rocket::Request;
 use env_helpers::{get_env, get_env_default};
 use crate::configs::Configs;
+use rocket_okapi::swagger_ui::{make_swagger_ui, SwaggerUIConfig};
 
 fn main()
 {
@@ -32,6 +34,13 @@ fn main()
         .manage(get_pgsql_pool())
         .manage(Configs::get_configs())
         .mount("/api", routes::get_routes())
+        .mount(
+            "/swagger-ui/",
+            make_swagger_ui(&SwaggerUIConfig {
+                url: "/api/openapi.json".to_owned(),
+                ..Default::default()
+            }),
+        )
         .register(catchers![not_found])
         .launch();
 }

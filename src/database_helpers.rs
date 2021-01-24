@@ -9,6 +9,9 @@ use std::str::FromStr;
 use postgres::types::private::BytesMut;
 use serde::export::fmt::Display;
 use serde::export::Formatter;
+use rocket_okapi::request::OpenApiFromParam;
+use rocket_okapi::gen::OpenApiGenerator;
+use okapi::openapi3::{Parameter, ParameterValue};
 
 pub fn get_cell_from_row<'a, T: FromSql<'a>>(row: &'a Row, col: &str) -> Result<T, DatabaseError>
 {
@@ -82,6 +85,31 @@ impl FromParam<'_> for UuidParam
     {
         Uuid::from_str(param.as_str())
             .map(|uuid| UuidParam(uuid))
+    }
+}
+
+impl OpenApiFromParam<'_> for UuidParam
+{
+    fn path_parameter(gen: &mut OpenApiGenerator, name: String) -> rocket_okapi::Result<Parameter>
+    {
+        let schema = gen.json_schema::<Uuid>();
+        Ok(Parameter {
+            name,
+            location: "path".to_owned(),
+            description: None,
+            required: true,
+            deprecated: false,
+            allow_empty_value: false,
+            value: ParameterValue::Schema {
+                style: None,
+                explode: None,
+                allow_reserved: false,
+                schema,
+                example: None,
+                examples: None,
+            },
+            extensions: Default::default(),
+        })
     }
 }
 

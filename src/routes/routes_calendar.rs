@@ -9,6 +9,7 @@ use crate::routes::common_query_params::CommonQueryParams;
 /// Gets a calendar by id from the database.
 ///
 /// Response codes: 200, 404, 500
+#[openapi]
 #[get("/calendars/<calendar_id>")]
 pub fn get_calendar(mut db: PgsqlConn, calendar_id: UuidParam) -> RouteResult<Calendar>
 {
@@ -31,6 +32,7 @@ pub fn get_calendar(mut db: PgsqlConn, calendar_id: UuidParam) -> RouteResult<Ca
 /// Lists all calendars in the database.
 ///
 /// Response codes: 200, 500
+#[openapi]
 #[get("/calendars")]
 pub fn list_calendars(mut db: PgsqlConn, shared_params: CommonQueryParams) -> RouteResult<Vec<Calendar>>
 {
@@ -52,6 +54,7 @@ pub fn list_calendars(mut db: PgsqlConn, shared_params: CommonQueryParams) -> Ro
 /// Inserts a calendar into the database and returns it.
 ///
 /// Response codes: 201, 500
+#[openapi]
 #[post("/calendars", data = "<calendar>")]
 pub fn insert_calendar(mut db: PgsqlConn, calendar: Json<Calendar>) -> RouteResult<Calendar>
 {
