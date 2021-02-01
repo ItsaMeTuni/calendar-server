@@ -18,6 +18,7 @@ use rocket_okapi::request::OpenApiFromFormValue;
 use rocket_okapi::gen::OpenApiGenerator;
 use okapi::openapi3::{Parameter, ParameterValue};
 use crate::authentication::auth_guard::{ApiKey};
+use uuid::Uuid;
 
 
 /// Store a NaiveDate, NaiveTime or NaiveDateTime without knowing
@@ -236,7 +237,7 @@ pub fn insert_event(mut db: PgsqlConn, _api_key: ApiKey, calendar_id: UuidParam,
         RouteResult::Created(
             Event::from_row(row)?.into_plain(),
             //TODO: prepend host to url.
-            format!("/api/calendars/{}/events/{}", calendar_id, get_cell_from_row::<i32>(row, "id")?)
+            format!("/api/calendars/{}/events/{}", calendar_id, get_cell_from_row::<Uuid>(row, "id")?)
         )
     }
     else
