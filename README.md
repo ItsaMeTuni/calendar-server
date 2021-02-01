@@ -41,6 +41,10 @@ DB_ADDR=localhost:6789
 ```
 3. Run `docker-compose up -d`, this will start the postgres container.
 4. Run `cargo run` to run the server or run it from your IDE of preference.
+5. Run `psql -h localhost -p 6789 -U calendarserver` and then type the password in the env variable `POSTGRES_PASSWORD`.
+6. Run `INSERT INTO api_keys(scopes) VALUES (array['SUPER']);` to create an api key.
+7. Run `SELECT api_key FROM api_keys;` and copy the API key, you'll put it in the `Authorization` header of
+each request you make to the API.
 
 ## What Calendar Server does **NOT** support
 
