@@ -1,5 +1,7 @@
 # Calendar
 
+**IMPORTANT:** You need an API key to execute most requests. Take a look at [common](./common.md#header-authorization).
+
 ## The Calendar object
 
 Properties:
