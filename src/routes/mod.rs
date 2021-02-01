@@ -1,9 +1,9 @@
+//! TODO: protect all routes with an ApiKey request guard automatically
+
 use std::error::Error;
 use rocket::response::Responder;
 use rocket::{Request, Response, Route};
-
 use rocket::http::{Status, ContentType};
-
 use serde::Serialize;
 use std::ops::{Deref, Try};
 use std::io::Cursor;

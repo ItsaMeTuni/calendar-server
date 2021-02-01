@@ -17,6 +17,7 @@ use crate::routes::common_query_params::CommonQueryParams;
 use rocket_okapi::request::OpenApiFromFormValue;
 use rocket_okapi::gen::OpenApiGenerator;
 use okapi::openapi3::{Parameter, ParameterValue};
+use crate::authentication::auth_guard::{ApiKey};
 
 
 /// Store a NaiveDate, NaiveTime or NaiveDateTime without knowing
@@ -190,7 +191,7 @@ fn get_event_by_id(db: &mut PgsqlConn, calendar_id: UuidParam, event_id: UuidPar
 
 #[openapi]
 #[get("/calendars/<calendar_id>/events/<event_id>")]
-pub fn get_event(mut db: PgsqlConn, calendar_id: UuidParam, event_id: UuidParam) -> RouteResult<EventPlain>
+pub fn get_event(mut db: PgsqlConn, _api_key: ApiKey, calendar_id: UuidParam, event_id: UuidParam) -> RouteResult<EventPlain>
 {
     get_event_by_id(&mut db, calendar_id, event_id)
         .map(|opt|
@@ -201,7 +202,7 @@ pub fn get_event(mut db: PgsqlConn, calendar_id: UuidParam, event_id: UuidParam)
 
 #[openapi]
 #[post("/calendars/<calendar_id>/events", data = "<event>")]
-pub fn insert_event(mut db: PgsqlConn, calendar_id: UuidParam, event: Json<EventPlain>) -> RouteResult<EventPlain>
+pub fn insert_event(mut db: PgsqlConn, _api_key: ApiKey, calendar_id: UuidParam, event: Json<EventPlain>) -> RouteResult<EventPlain>
 {
     if !event.validate_non_patch() || event.id.is_some()
     {
@@ -246,7 +247,7 @@ pub fn insert_event(mut db: PgsqlConn, calendar_id: UuidParam, event: Json<Event
 
 #[openapi]
 #[put("/calendars/<calendar_id>/events/<event_id>", data = "<event_data>")]
-pub fn update_event(mut db: PgsqlConn, calendar_id: UuidParam, event_id: UuidParam, event_data: Json<EventPlain>) -> RouteResult<()>
+pub fn update_event(mut db: PgsqlConn, _api_key: ApiKey, calendar_id: UuidParam, event_id: UuidParam, event_data: Json<EventPlain>) -> RouteResult<()>
 {
     let mut query = "UPDATE events SET ".to_owned();
 
@@ -306,6 +307,7 @@ pub fn update_event(mut db: PgsqlConn, calendar_id: UuidParam, event_id: UuidPar
 #[get("/calendars/<calendar_id>/events/<event_id>/instances?<since>&<until>")]
 pub fn get_instances(
     mut db: PgsqlConn,
+    _api_key: ApiKey,
     calendar_id: UuidParam,
     event_id: UuidParam,
     since: Option<NaiveDateParam>,
@@ -344,6 +346,7 @@ pub fn get_instances(
 #[get("/calendars/<calendar_id>/events?<since>&<until>")]
 pub fn list_events(
     mut db: PgsqlConn,
+    _api_key: ApiKey,
     calendar_id: UuidParam,
     since: Option<NaiveDateOrTime>,
     until: Option<NaiveDateOrTime>,
@@ -398,6 +401,7 @@ pub fn list_events(
 #[get("/calendars/<calendar_id>/events/changes?<since>")]
 pub fn check_for_changes(
     mut db: PgsqlConn,
+    _api_key: ApiKey,
     common_params: CommonQueryParams,
     calendar_id: UuidParam,
     since: NaiveDateOrTime,

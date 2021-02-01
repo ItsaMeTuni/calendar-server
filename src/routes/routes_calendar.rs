@@ -5,13 +5,14 @@ use crate::database_helpers::{FromRow, UuidParam};
 use rocket_contrib::json::Json;
 use crate::database_error::{DatabaseError, DatabaseErrorKind};
 use crate::routes::common_query_params::CommonQueryParams;
+use crate::authentication::auth_guard::ApiKey;
 
 /// Gets a calendar by id from the database.
 ///
 /// Response codes: 200, 404, 500
 #[openapi]
 #[get("/calendars/<calendar_id>")]
-pub fn get_calendar(mut db: PgsqlConn, calendar_id: UuidParam) -> RouteResult<Calendar>
+pub fn get_calendar(mut db: PgsqlConn, _api_key: ApiKey, calendar_id: UuidParam) -> RouteResult<Calendar>
 {
     let query = "SELECT * FROM calendars WHERE id = $1;";
 
@@ -34,7 +35,7 @@ pub fn get_calendar(mut db: PgsqlConn, calendar_id: UuidParam) -> RouteResult<Ca
 /// Response codes: 200, 500
 #[openapi]
 #[get("/calendars")]
-pub fn list_calendars(mut db: PgsqlConn, shared_params: CommonQueryParams) -> RouteResult<Vec<Calendar>>
+pub fn list_calendars(mut db: PgsqlConn, _api_key: ApiKey, shared_params: CommonQueryParams) -> RouteResult<Vec<Calendar>>
 {
     let query = "SELECT * FROM calendars OFFSET $1 LIMIT $2;";
 
@@ -56,7 +57,7 @@ pub fn list_calendars(mut db: PgsqlConn, shared_params: CommonQueryParams) -> Ro
 /// Response codes: 201, 500
 #[openapi]
 #[post("/calendars", data = "<calendar>")]
-pub fn insert_calendar(mut db: PgsqlConn, calendar: Json<Calendar>) -> RouteResult<Calendar>
+pub fn insert_calendar(mut db: PgsqlConn, _api_key: ApiKey, calendar: Json<Calendar>) -> RouteResult<Calendar>
 {
     let calendar = calendar.into_inner();
 

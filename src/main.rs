@@ -13,6 +13,7 @@ mod recurrence;
 mod configs;
 mod env_helpers;
 mod iter_helpers;
+mod authentication;
 
 extern crate dotenv;
 #[macro_use] extern crate thiserror;
