@@ -1,5 +1,5 @@
 use crate::connection_pool::PgsqlConn;
-use crate::routes::RouteResult;
+use rocket_route_result::RouteResult;
 use crate::event::{Event, EventPlain, ToPlain};
 use crate::database_helpers::{FromRow, get_cell_from_row, UuidParam};
 use rocket_contrib::json::Json;

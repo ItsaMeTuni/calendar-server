@@ -2,7 +2,7 @@ use rocket::request::{FromRequest, Outcome};
 use rocket::Request;
 use rocket::http::Status;
 use crate::connection_pool::PgsqlConn;
-use crate::database_helpers::{get_cell_from_row, UuidParam};
+use crate::database_helpers::{get_cell_from_row};
 use rocket::outcome::IntoOutcome;
 use uuid::Uuid;
 use std::str::FromStr;

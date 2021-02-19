@@ -23,3 +23,4 @@ rocket_okapi = "0.5"
 schemars = { version = "0.7", features = ["chrono", "uuid"] }
 okapi = { version = "0.4", features = ["derive_json_schema"] }
 ring = "0.17.0-alpha.8"
+rocket-route-result = { git = "https://github.com/ItsaMeTuni/rocket-route-result", features = ["okapi-0_4"]}

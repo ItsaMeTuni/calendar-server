@@ -117,6 +117,7 @@ dependencies = [
  "r2d2_postgres",
  "ring",
  "rocket",
+ "rocket-route-result",
  "rocket_contrib",
  "rocket_okapi",
  "schemars",
@@ -1382,6 +1383,19 @@ dependencies = [
  "toml",
  "version_check 0.9.2",
  "yansi",
+]
+
+[[package]]
+name = "rocket-route-result"
+version = "0.1.0"
+source = "git+https://github.com/ItsaMeTuni/rocket-route-result#7e099d7dd9e42c3c2a64c7da79f35f082bc66db7"
+dependencies = [
+ "okapi",
+ "rocket",
+ "rocket_okapi",
+ "schemars",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
